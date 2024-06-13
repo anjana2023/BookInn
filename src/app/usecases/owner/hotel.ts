@@ -4,7 +4,7 @@ import Hotel from "../../../frameworks/database/models/hotelModel";
 import { HotelInterface } from "../../../types/hotelInterface";
 import { HttpStatus } from "../../../types/httpStatus";
 import AppError from "../../../utils/appError";
-import {  hotelVerificationRejectedEmailPage } from "../../../utils/docterVerifcationRejectionEmail";
+import {  hotelVerificationRejectedEmailPage } from "../../../utils/hotelVerifcationRejectionEmail";
 import { hotelDbInterfaceType } from "../../interfaces/hotelDbInterface";
 import sendMail from "../../../utils/sendMail";
 
@@ -19,10 +19,14 @@ export const addHotel = async (
     place,
     description,
     propertyRules,
-    aboutProperty,
-    rooms,
+    room,
+    guests,
+    // reservationType,
+    stayType,
+    address,
+    price,
     amenities,
-    image
+    imageUrls,
   } = hotel;
   console.log("hotel usecase ............")
   const existingHotel = await hotelRepository.getHotelByName(name);
@@ -40,16 +44,20 @@ export const addHotel = async (
     );
   }
   const hotelEntity: HotelEntityType = createHotelEntity(
-    name,
-    email,
-    ownerId,
-    place,
-    description,
-    propertyRules,
-    aboutProperty,
-    rooms,
-    amenities,
-    image
+name,
+email,
+ownerId,
+place,
+price,
+description,
+room,
+guests,
+propertyRules,
+// reservationType,
+stayType,
+address,
+amenities,
+imageUrls,
   );
 
   const newHotel = await hotelRepository.addHotel(hotelEntity);
@@ -73,16 +81,13 @@ export const getMyHotels=async(
 )=>
   await hotelRepository.getMyHotels(ownerId)
 
-
-
   export const getHotelRejected = async ( id: string,status:string,reason:string ,hotelRepository: ReturnType<hotelDbInterfaceType>) =>{
     await hotelRepository.getHotelByIdUpdateRejected(id,status,reason);
     const hotel =await hotelRepository.getHotelById(id);
+    const {name,email}=hotel as unknown as {name:string,email:string}
     if(hotel){
-      const hotelName = hotel.name;
-      const email = hotel.email;
       const emailSubject = "Verification Rejected";
-      sendMail(email,emailSubject,hotelVerificationRejectedEmailPage(hotelName,reason))
+      sendMail(email,emailSubject,hotelVerificationRejectedEmailPage(name,reason))
     }else{
       console.error ("Doctor not found");
     }

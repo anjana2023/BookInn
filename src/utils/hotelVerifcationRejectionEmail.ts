@@ -59,7 +59,7 @@ export const hotelVerificationRejectedEmailPage = (name: string, reason: string)
       <body>
       
         <div class="container">
-          <h1>Doctor Verification Rejected</h1>
+          <h1>Hotel Rejected</h1>
           <p>Dear ${name},</p>
           <p>We regret to inform you that your verification request has been rejected due to the following reason:</p>
           <!-- Apply the reason class to bolden the reason text -->

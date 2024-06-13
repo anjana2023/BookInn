@@ -1,5 +1,34 @@
 import { Schema, model } from "mongoose";
 
+const addressSchema = new Schema({
+  streetAddress: {
+    type: String,
+    required: true,
+  },
+  landMark: {
+    type: String,
+    required: true,
+  },
+  district: {
+    type: String,
+    required: true,
+  },
+  city: {
+    type: String,
+    required: true,
+  },
+  pincode: {
+    type: String,
+    required: true,
+  },
+  country: {
+    type: String,
+    required: true,
+  },
+}, { _id: false });
+
+
+
 const hotelSchema = new Schema(
   {
     name: {
@@ -25,24 +54,28 @@ const hotelSchema = new Schema(
       type: String,
       required: true,
     },
-    propertyRules: [String],
-    aboutProperty: {
-      type: String,
-      trim: true,
-      default: "",
+    address: {
+      type: addressSchema,
+      required: true,
     },
-    rooms: [
-      {
-        type: {
-          type: String,
-          required: true,
-          enum: ["Single", "Double", "Duplex"], 
-        },
-        price: String,
-        guests: String,
-        number: String,
-      },
-    ],
+    propertyRules: [String],
+   stayType: {
+    type: String,
+    required: true,
+  },
+    room: {
+      type: Number,
+      required: true,
+    },
+ 
+    guests: {
+      type: Number,
+      required: true,
+    },
+    price: {
+      type: String,
+      required: true,
+    },
     amenities: [String],
     isBlocked: {
       type: Boolean,
@@ -64,12 +97,21 @@ const hotelSchema = new Schema(
       type: Boolean,
       default: true,
     },
-    image:{
-      type:String
-    }
+    imageUrls: [String],
+    unavailableDates: [{ type: Date }],
   },
+  
   { timestamps: true }
 );
+
+hotelSchema.pre("save", async function (next) {
+  const currentDate = new Date();
+  this.unavailableDates = this.unavailableDates.filter(
+    (date: Date) => date >= currentDate
+  );
+  next();
+});
+
 
 const Hotel = model("Hotel", hotelSchema);
 export default Hotel;

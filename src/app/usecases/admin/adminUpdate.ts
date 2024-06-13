@@ -16,6 +16,6 @@ export const blockOwner = async (
   id: string,
   ownerDbInterface: ReturnType<ownerDbInterfaceType>
 ) => {
-  const user = await ownerDbInterface.getOwnerById(id);
-  await ownerDbInterface.updateOwnerBlock(id, !user?.isBlocked);
+  const owner = await ownerDbInterface.getOwnerById(id);
+  await ownerDbInterface.updateOwnerBlock(id, !owner?.isBlocked);
 };

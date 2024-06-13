@@ -72,7 +72,12 @@ export const ownerDbRepository = () => {
   const updateOwnerInfo = async (id: string, updateData: Record<string, any>) =>
     await Owner.findByIdAndUpdate(id, updateData, { new: true });
 
-  const getAllOwners = async () => await Owner.find({ isVerified: true });
+  const getAllOwners = async () => {
+
+    const own = await Owner.find({ isVerified: true });
+    console.log(own,"ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp")
+    return own
+  }
 
   const updateOwnerBlock = async (id: string, status: boolean) =>
     await Owner.findByIdAndUpdate(id, { isBlocked: status });

@@ -44,6 +44,15 @@ export const hotelDbInterface = (
   const updateHotelBlock = async (id: string, status: boolean) =>
     await repository.updateHotelBlock(id, status);
 
+  
+  const updateUnavailableDates = async (id: string, dates: any) =>
+    await repository.updateUnavailableDates(id, dates)
+
+  const checkAvailability= async (id: string, checkInDate:string,checkOutDate:string) =>
+    await repository.checkAvailability(id,checkInDate,checkOutDate)
+
+  const getAllBookings = async () => await repository.getAllBookings();
+
 
   return {
     addHotel,
@@ -58,7 +67,10 @@ export const hotelDbInterface = (
     getHotelByIdUpdateRejected,
     getHotelById,
     updateHotel,
-    updateHotelBlock
+    updateHotelBlock,
+    updateUnavailableDates,
+    checkAvailability,
+    getAllBookings
   };
 };
 

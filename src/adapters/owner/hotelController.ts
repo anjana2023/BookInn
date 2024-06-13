@@ -4,6 +4,7 @@ import { addHotel, blockHotel, getMyHotels, updateHotel } from "../../app/usecas
 import { hotelDbInterfaceType } from "../../app/interfaces/hotelDbInterface";
 import { HttpStatus } from "../../types/httpStatus";
 import { getHotelDetails, getUserHotels } from "../../app/usecases/User/read&write/hotel";
+import { checkAvailability } from "../../app/usecases/Booking/booking";
 
 declare module 'express-serve-static-core' {
   interface Request {
@@ -23,8 +24,10 @@ const hotelController = (
     next: NextFunction
   ) => {
     try {
-      const ownerId = req.user;
+      const ownerId = req.owner;
       const hotelData = req.body;
+      console.log(hotelData,"data from adddggggggdddd");
+      
       const registeredHotel = await addHotel(ownerId, hotelData, dbRepositoryHotel);
       res.json({
         status: "success",
@@ -42,14 +45,9 @@ const hotelController = (
     next: NextFunction
   ) => {
     try {
-      const ownerId = req.owner;
-      console.log(ownerId,"........deadsfaewfdwf");
-
+      const ownerId= req.owner;
       const Hotels = await getMyHotels(ownerId, dbRepositoryHotel);
-      console.log(Hotels,"//////////////////registered hotel controller")
-
-
-      return res.status(HttpStatus.OK).json({ success: true, Hotels });
+   return res.status(HttpStatus.OK).json({ success: true, Hotels });
     } catch (error) {
       next(error);
     }
@@ -94,14 +92,14 @@ const hotelController = (
   ) => {
     try {
       const hotels = req.body
-      const hotelId= hotels._id
- 
+      const hotelId = req.params.id;
+      console.log(hotelId,",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,")
       const updateData = req.body;
       const hotel = await updateHotel(hotelId, updateData, dbRepositoryHotel);
       console.log(hotel,"...................................hotebjwhbbahdzgvchasDgjbhvvvvvvvvvvvvvvvvvvvvvvvv")
       res
         .status(200)
-        .json({ success: true, hotel, message: "Profile updated successfully" });
+        .json({ success: true, hotel, message: "Edited successfully" });
     } catch (error) {
       next(error);
     }
@@ -128,6 +126,36 @@ const hotelController = (
     }
   };
   
+  const checkAvilabitiy = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const dates = req.body
+      const id = req.params.id
+      const isDateExisted=await checkAvailability( id,dates,dbRepositoryHotel)
+      console.log(isDateExisted);
+      
+      if(!isDateExisted){
+        console.log("hloooo");
+        
+        res.status(HttpStatus.OK).json({
+          status: "success",
+          message: "date is availble"
+        })
+      }else{
+        res.status(HttpStatus.OK).json({
+          status: "fail",
+          message: "date is unavailble"
+        })
+      }
+      
+    } catch (error) {
+      next(error)
+      
+    }
+  }
 
 
 
@@ -139,7 +167,8 @@ const hotelController = (
     getHotelsUserSide,
     hotelDetails,
     updateHotelInfo,
-    hotelBlock
+    hotelBlock,
+    checkAvilabitiy
   };
 };
 

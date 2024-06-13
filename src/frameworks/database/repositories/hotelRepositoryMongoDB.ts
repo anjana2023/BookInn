@@ -1,6 +1,7 @@
 import { HotelInterface } from './../../../types/hotelInterface';
 import { HotelEntityType } from "../../../entities/hotel"
 import Hotel from "../models/hotelModel"
+import Booking from '../models/bookingModel';
 
 export const hotelDbRepository=()=>{
     const addHotel=async(hotel:HotelEntityType)=>{
@@ -8,15 +9,20 @@ export const hotelDbRepository=()=>{
          name:hotel.getName(),
             email:hotel.getEmail(),
             place:hotel.getPlace(),
+            address: hotel.getAddress(),
             ownerId:hotel.getOwnerId(),
             description:hotel.getDescription(),
+            room: hotel.getRoom(),
+            price: hotel.getPrice(),
+            guests: hotel.getGuests(),
             propertyRules:hotel.getPropertyRules(),
-            aboutProperty:hotel.getAboutProperty(),
-            rooms:hotel.getRooms(),
+           
+            // reservationType: hotel.getReservationType(),
+            stayType: hotel.getStayType(),
             amenities:hotel.getAmenities(),
-            image: hotel.getImage(),
+            imageUrls: hotel.getImageUrls(),
         })
-        newHotel.save();
+       await newHotel.save();
         return newHotel
     }
     const getHotelByName=async(name:string)=>{
@@ -39,7 +45,7 @@ export const hotelDbRepository=()=>{
       const getMyHotels = async (ownerId: string) => {
         const Hotels = await Hotel.find({ ownerId });
         console.log(Hotels)
-      console.log(Hotels,"...........reposhotel")
+      console.log(Hotels,"..........hjfeasfufbaekhubv")
         return Hotels;
       };
     
@@ -61,12 +67,6 @@ const getHotelById = async (id: string) =>
     "-password -isVerified -isApproved -isRejected -verificationToken "
   );
 
-  const getHotelbyId = async (id: string) => {
-    const hotel: HotelInterface | null = await Hotel.findById(id);
-    return hotel;
-  };
-
-
 
   const updateHotelBlock = async (id: string, status: boolean) =>
     await Hotel.findByIdAndUpdate(id, { isBlocked: status });
@@ -76,6 +76,59 @@ const getHotelById = async (id: string) =>
 
 
 const getHotelByIdUpdateRejected = async (id: string,status:string,reason:string) =>await Hotel.findByIdAndUpdate(id,{status:status, isApproved:false, rejectedReason:reason}).select("-password -isVerified -isApproved ");
+
+
+const updateUnavailableDates = async (id: string, dates: any) =>
+  await Hotel.updateOne(
+    { _id: id },
+    { $addToSet: { unavailableDates: { $each: dates } } }
+  )
+  const getDatesInRange = (startDate: Date, endDate: Date): Date[] => {
+    const dates: Date[] = [];
+    let currentDate = new Date(startDate);
+  
+    while (currentDate <= endDate) {
+      dates.push(new Date(currentDate));
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+  
+    return dates;
+  };
+       
+  const checkAvailability = async (id: string, checkInDate: string, checkOutDate: string) => {
+    const checkIn = new Date(checkInDate);
+    const checkOut = new Date(checkOutDate);
+  
+    const hotel = await Hotel.findById(id).select("unavailableDates");
+  
+    if (!hotel) {
+      throw new Error("Hotel not found");
+    }
+  
+    if (!Array.isArray(hotel.unavailableDates)) {
+      throw new Error("Unavailable dates is not an array");
+    }
+  
+    const datesInRange = getDatesInRange(checkIn, checkOut);
+    console.log(datesInRange, "....................");
+  
+    const isUnavailable = datesInRange.some(date =>
+      hotel.unavailableDates.some(unavailableDate => {
+        if (unavailableDate instanceof Date) {
+          return unavailableDate.getTime() === date.getTime();
+        }
+        return false;
+      })
+    );
+  
+    console.log("////////////////////////", isUnavailable);
+  
+    return !isUnavailable;
+  };
+  
+  const getAllBookings = async () => await Booking.find({ status: "Booked" }); 
+  
+
 
     return{
         addHotel,
@@ -91,7 +144,10 @@ const getHotelByIdUpdateRejected = async (id: string,status:string,reason:string
         getHotelById,
         updateHotelInfo,
         updateHotelBlock,
-        getHotelbyId
+        updateUnavailableDates,
+        checkAvailability,
+        getAllBookings
+        // getHotelbyId
     }
 }
 export type hotelDbRepositoryType=typeof hotelDbRepository;

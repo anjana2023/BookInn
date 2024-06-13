@@ -28,6 +28,7 @@ const adminRouter = () => {
   router.get("/owners", authenticateAdmin, controller.getAllOwners);
   router.get("/hotels",controller.getAllHotels)
   router.get("/hotelDetails/:id",controller.hotelDetails);
+  router.get("/bookings",authenticateAdmin, controller.getAllBookings);
 
   router.patch("/block_user/:id", controller.userBlock);
   router.patch("/block_owner/:id",  controller.ownerBlock);

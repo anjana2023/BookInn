@@ -12,7 +12,7 @@ import {
 } from "../../app/interfaces/ownerDbInterface";
 import { ownerDbRepositoryType } from "../../frameworks/database/repositories/ownerRepository";
 import { userRepositoryMongoDB } from "../../frameworks/database/repositories/userRepositoryMongoDB";
-import { getOwners, getUsers } from "../../app/usecases/admin/adminRead";
+import { fetchAllBookings, getOwners, getUsers } from "../../app/usecases/admin/adminRead";
 import { blockOwner, blockUser } from "../../app/usecases/admin/adminUpdate";
 import { getHotel, getHotelRejected, getHotels } from "../../app/usecases/owner/hotel";
 import { hotelDbInterface, hotelDbInterfaceType } from "../../app/interfaces/hotelDbInterface";
@@ -77,8 +77,8 @@ const adminController = (
     next: NextFunction
   ) => {
     try {
-      const users = await getOwners(dbOwnerRepository);
-      return res.status(HttpStatus.OK).json({ success: true, users });
+      const owners = await getOwners(dbOwnerRepository);
+      return res.status(HttpStatus.OK).json({ success: true, owners });
     } catch (error) {
       next(error);
     }
@@ -103,6 +103,8 @@ const adminController = (
   ) => {
     try {
       const { id } = req.params;
+
+      console.log(id,".................id..............")
       await blockOwner(id, dbOwnerRepository);
       return res
         .status(HttpStatus.OK)
@@ -168,15 +170,30 @@ const rejectionHotel = async(
 )=>{
   try {
     const {id} = req.params;
+    console.log(req.body)
     const {status} = req.body;
+    console.log(status,"........statys................")
     const {reason} = req.body;
-    const doctor = await getHotelRejected(id,status,reason,dbRepositoryHotel);
-    return res.status(HttpStatus.OK).json({ success: true, doctor,message:"Verified Successfully" });
+    const hotel = await getHotelRejected(id,status,reason,dbRepositoryHotel);
+    return res.status(HttpStatus.OK).json({ success: true, hotel,message:"Verified Successfully" });
   } catch (error) {
     next(error);
   }
 }
 
+
+const getAllBookings = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const bookings:any = await fetchAllBookings(dbRepositoryHotel);
+    return res.status(HttpStatus.OK).json({ success: true, bookings });
+  } catch (error) {
+    next(error);
+  }
+};
 
 
 
@@ -189,6 +206,7 @@ const rejectionHotel = async(
     getAllHotels,
     hotelDetails,
     VerifyHotel,
+    getAllBookings,
     rejectionHotel
   };
 };

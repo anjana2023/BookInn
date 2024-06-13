@@ -41,7 +41,7 @@ const hotelcontrol=hotelController(hotelDbInterface,hotelDbRepository)
   router.get("/myHotels",authenticateOwner,hotelcontrol.registeredHotels)
   router.patch("/block_hotel/:id", hotelcontrol.hotelBlock);
   router.get("/hotelDetails/:id",controller.hotelDetails);
-  router.patch("/hotelDetails/edit",hotelcontrol.updateHotelInfo);
+  router.patch("/hotelDetails/edit/:id",authenticateOwner,hotelcontrol.updateHotelInfo);
 
 
   return router;
