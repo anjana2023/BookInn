@@ -34,7 +34,8 @@ const adminRouter = () => {
   router.patch("/block_owner/:id",  controller.ownerBlock);
   router.patch("/verify_hotel/:id", controller.VerifyHotel);
   router.patch("/verify_hotel_rejection/:id",controller.rejectionHotel);
-  
+  router.post("/addCategory",controller.addCategory);
+
   return router;
 };
 export default adminRouter;

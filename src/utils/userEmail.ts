@@ -56,10 +56,9 @@ export const otpEmail = (otp: string, name: string) => {
     
         </div>
         <p><span class="bold-text name" >Hi, ${name}</span></p>
-        <p>Welcome to BookInn. Use the following OTP to complete your Sign Up procedures. OTP is valid for 2 minutes</p>
-        <div class="otp-container" style="background-color: #ff6347; color: #fff; padding: 10px; border-radius: 4px; text-align: center;">
-        ${otp}
-    </div>
+        <p>Welcome to BookInn.  ${otp} ,Use this OTP to complete your Sign Up procedures. OTP is valid for 2 minutes,</p>
+       
+      
     
     <p><span >Regards,</span><br />BookInn</p>
     <div class="footer">

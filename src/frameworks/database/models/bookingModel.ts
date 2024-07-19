@@ -45,6 +45,7 @@ const bookingSchema = new mongoose.Schema(
       require: true,
       ref: "Hotel",
     },
+    rooms: [],
     userId: {
       type: mongoose.Types.ObjectId,
       trim: true,
@@ -85,9 +86,12 @@ const bookingSchema = new mongoose.Schema(
       enum: ["Pending", "Paid", "Failed", "Refunded"],
       default: "Pending",
     },
+    cancelReason:{
+      type:String,
+    },
     status: {
       type: String,
-      enum:["booked","rejected","cancelled"],
+      enum:["pending","booked","rejected","cancelled"],
       default: "booked",
     },
   },

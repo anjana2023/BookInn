@@ -21,3 +21,8 @@ export const getOwners = async (
 
 export const fetchAllBookings = async (hotelDbRepository: ReturnType<hotelDbInterfaceType>) =>
   await hotelDbRepository.getAllBookings();
+
+export const addStayType=async(
+  name:string,
+  hotelDbRepository: ReturnType<hotelDbInterfaceType>
+)=>await hotelDbRepository.addStayType(name)

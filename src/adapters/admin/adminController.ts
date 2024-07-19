@@ -12,7 +12,7 @@ import {
 } from "../../app/interfaces/ownerDbInterface";
 import { ownerDbRepositoryType } from "../../frameworks/database/repositories/ownerRepository";
 import { userRepositoryMongoDB } from "../../frameworks/database/repositories/userRepositoryMongoDB";
-import { fetchAllBookings, getOwners, getUsers } from "../../app/usecases/admin/adminRead";
+import { addStayType, fetchAllBookings, getOwners, getUsers } from "../../app/usecases/admin/adminRead";
 import { blockOwner, blockUser } from "../../app/usecases/admin/adminUpdate";
 import { getHotel, getHotelRejected, getHotels } from "../../app/usecases/owner/hotel";
 import { hotelDbInterface, hotelDbInterfaceType } from "../../app/interfaces/hotelDbInterface";
@@ -43,7 +43,7 @@ const adminController = (
   ) => {
     try {
       const { email, password } = req.body;
-      const accessToken = await loginAdmin(email, password, authService);
+      const {accessToken ,refreshToken}= await loginAdmin(email, password, authService);
       return res.status(HttpStatus.OK).json({
         success: true,
         message: "Admin login success",
@@ -51,7 +51,8 @@ const adminController = (
           name: "Admin_User",
           role: "admin",
         },
-        accessToken,
+        access_token:accessToken,
+        refresh_token: refreshToken,
       });
     } catch (error) {
       next(error);
@@ -104,7 +105,6 @@ const adminController = (
     try {
       const { id } = req.params;
 
-      console.log(id,".................id..............")
       await blockOwner(id, dbOwnerRepository);
       return res
         .status(HttpStatus.OK)
@@ -135,10 +135,8 @@ const adminController = (
   ) => {
     try {      
       const id = req.params.id
-      console.log(id);
       
       const Hotel = await getHotelDetails(id, dbRepositoryHotel)
-      console.log(Hotel);
       return res.status(HttpStatus.OK).json({ success: true, Hotel })
     } catch (error) {
       next(error)
@@ -170,9 +168,7 @@ const rejectionHotel = async(
 )=>{
   try {
     const {id} = req.params;
-    console.log(req.body)
     const {status} = req.body;
-    console.log(status,"........statys................")
     const {reason} = req.body;
     const hotel = await getHotelRejected(id,status,reason,dbRepositoryHotel);
     return res.status(HttpStatus.OK).json({ success: true, hotel,message:"Verified Successfully" });
@@ -195,7 +191,23 @@ const getAllBookings = async (
   }
 };
 
-
+const addCategory = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { name } = req.body; // Destructure name from req.body
+    const result = await addStayType(name, dbRepositoryHotel);
+    if (result) {
+      return res
+        .status(HttpStatus.OK)
+        .json({ success: true, message: "Stay Type added Successfully" });
+    } else {
+      return res
+        .status(HttpStatus.BAD_REQUEST)
+        .json({ success: false, message: "Failed to add Stay Type" });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
 
   return {
     adminLogin,
@@ -207,7 +219,8 @@ const getAllBookings = async (
     hotelDetails,
     VerifyHotel,
     getAllBookings,
-    rejectionHotel
+    rejectionHotel,
+    addCategory
   };
 };
 

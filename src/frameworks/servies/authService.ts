@@ -18,6 +18,7 @@ export const authService = () => {
     const otp = Math.floor(100000 + Math.random() * 900000);
     return `${otp}`;
   };
+
   const createTokens = (id: string, name: string, role: string) => {
     const payload = {
       id,
@@ -27,9 +28,33 @@ export const authService = () => {
     const accessToken = jwt.sign(payload, configKeys.ACCESS_SECRET, {
       expiresIn: "2d",
     });
-    return accessToken;
+
+    const refreshToken = jwt.sign(payload,configKeys.REFRESH_SECRET,{
+      expiresIn:"2d",
+  });
+  
+  return {accessToken, refreshToken};
   };
 
+
+
+  const OwnerCreateTokens = (id:string,name:string, role:string)=>{
+    const payload = {
+        id,
+        name,
+        role,
+    };
+    const accessToken = jwt.sign(payload, configKeys.ACCESS_SECRET, {
+        expiresIn: "2d",
+      });
+      const refreshToken = jwt.sign(payload, configKeys.REFRESH_SECRET, {
+        expiresIn: "2d",
+      });
+      console.log('Access Token:', accessToken); 
+      console.log('Refresh Token:', refreshToken);
+    
+    return {accessToken,refreshToken};
+}
   const getRandomString = () => crypto.randomUUID();
 
   return {
@@ -38,6 +63,7 @@ export const authService = () => {
     generateOtp,
     createTokens,
     getRandomString,
+    OwnerCreateTokens
   };
 };
 export type AuthService = typeof authService;

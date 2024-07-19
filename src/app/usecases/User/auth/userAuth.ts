@@ -24,8 +24,6 @@ export const userRegister = async (
 ) => {
   const { name, email, password, phoneNumber, role } = user;
   const authenticationMethod = "password";
-  console.log(password);
-
   const existingEmailUser = await userRepository.getUserByEmail(email);
   if (existingEmailUser) {
     throw new AppError(
@@ -54,7 +52,15 @@ export const userRegister = async (
   const emailSubject = "Account verification";
   sendMail(newUser.email, emailSubject, otpEmail(OTP, newUser.name));
 
-  return newUser;
+  // const accessToken = authService.createTokens(
+  //   newUser.id,
+  //   newUser.name,
+  //   newUser.role
+// );
+return  newUser
+  // accessToken,
+
+
 };
 
 export const loginUser = async (
@@ -91,19 +97,22 @@ export const loginUser = async (
     throw new AppError("Password is Wrong", HttpStatus.UNAUTHORIZED);
   }
 
-  const accessToken = authService.createTokens(
+  const {accessToken,refreshToken} = authService.createTokens(
     isEmailExist.id,
     isEmailExist.name,
     isEmailExist.role
-  );
-  return { accessToken, isEmailExist };
+);
+
+return {accessToken,isEmailExist,refreshToken};
 };
+
 
 export const verifyOtpUser = async (
   otp: string,
   userId: string,
   userRepository: ReturnType<userDbInterface>
 ) => {
+  
   if (!otp) {
     throw new AppError("please provide an OTP", HttpStatus.BAD_REQUEST);
   }
@@ -112,12 +121,20 @@ export const verifyOtpUser = async (
     throw new AppError("Invlaid OTP ", HttpStatus.BAD_REQUEST);
   }
   if (otpUser.otp === otp) {
-    await userRepository.updateUserverification(userId);
+    const wallet = await userRepository.addWallet(userId)
+    await userRepository.updateProfile(userId, {
+      isVerified: true,
+      wallet: wallet._id,
+    });
+    // await userRepository.updateUserverification(userId);
     return true;
   } else {
     throw new AppError("Invalid OTP,try again", HttpStatus.BAD_REQUEST);
   }
 };
+
+
+
 export const authenticateGoogleUser = async (
   userData: GoogleResponseType,
   userRepository: ReturnType<userDbInterface>,
@@ -127,14 +144,20 @@ export const authenticateGoogleUser = async (
   const authenticationMethod = "google";
 
   const isEmailExist = await userRepository.getUserByEmail(email);
+  
+  if(isEmailExist?.authenticationMethod === "password"){
+    
+    throw new AppError("you can use login form",HttpStatus.BAD_REQUEST);
+  }
   if (isEmailExist?.isBlocked) {
     throw new AppError(
       "Your account is blocked by administrator",
       HttpStatus.FORBIDDEN
     );
   }
+ 
   if (isEmailExist) {
-    const accessToken = authService.createTokens(
+    const {accessToken,refreshToken} = authService.createTokens(
       isEmailExist.id,
       isEmailExist.name,
       isEmailExist.role
@@ -142,6 +165,7 @@ export const authenticateGoogleUser = async (
     return {
       isEmailExist,
       accessToken,
+      refreshToken
     };
   } else {
     const googleUser: GoogleUserEntityType = GoogleSignInUserEntity(
@@ -153,6 +177,7 @@ export const authenticateGoogleUser = async (
       authenticationMethod
     );
     const newUser = await userRepository.registerGoogleoUser(googleUser);
+    const wallet = await userRepository.addWallet(newUser.id);
     const userId = newUser._id as unknown as string;
     const Name = newUser.name as unknown as string;
 
@@ -247,3 +272,10 @@ export const deleteOtp = async (
 
   console.log(newOtp, "----otp");
 };
+
+
+export const getUserById = async (
+  id: string,
+  userRepository: ReturnType<userDbInterface>
+) => await userRepository.getUserById(id);
+

@@ -8,7 +8,7 @@ import {
 import { Request, Response, NextFunction } from "express";
 import { getHotelDetails } from "../../app/usecases/User/read&write/hotel";
 import { hotelDbInterface, hotelDbInterfaceType } from "../../app/interfaces/hotelDbInterface";
-
+import { userDbInterface } from "../../app/interfaces/userDbRepositories";
 import {
   ownerDbInterface,
   ownerDbInterfaceType,
@@ -26,6 +26,7 @@ import {
   OwnerRegister,
   authenticateGoogleOwner,
   deleteOtp,
+  getSingleUser,
   loginOwner,
   sendResetVerificationCode,
   verifyOtpOwner,
@@ -39,6 +40,8 @@ import {
   updateOwner,
   verifyNumber,
 } from "../../app/usecases/owner/auth/read&write/ownerProfile";
+import { userRepositoryMongoDB } from "../../frameworks/database/repositories/userRepositoryMongoDB";
+import { getUserProfile, updateUser } from "../../app/usecases/User/read&write/profile";
 
 const authController = (
   authServiceInterface: AuthServiceInterface,
@@ -46,8 +49,11 @@ const authController = (
   ownerDbRepository: ownerDbInterfaceType,
   ownerDbRepositoryImpl: ownerDbRepositoryType,
   hotelDbRepository: hotelDbInterfaceType,
-  hotelDbRepositoryImpl: hotelDbRepositoryType
+  hotelDbRepositoryImpl: hotelDbRepositoryType,
+  userDbRepository: userDbInterface,
+  userDbRepositoryImpl: userRepositoryMongoDB
 ) => {
+  const dbRepositoryUser = userDbRepository(userDbRepositoryImpl());
   const dbRepositoryOwner = ownerDbRepository(ownerDbRepositoryImpl());
   const authService = authServiceInterface(authServiceImpl());
   const dbRepositoryHotel = hotelDbRepository(hotelDbRepositoryImpl());
@@ -110,7 +116,7 @@ const authController = (
     async (req: Request, res: Response, next: NextFunction) => {
       try {
         console.log("Request Body:", req.body);
-        const { accessToken, isEmailExist } = await loginOwner(
+        const { accessToken,refreshToken, isEmailExist } = await loginOwner(
           req.body,
           dbRepositoryOwner,
           authService
@@ -119,7 +125,8 @@ const authController = (
         res.json({
           status: "success",
           message: "owner logined",
-          accessToken,
+          access_token: accessToken,
+          refresh_token : refreshToken,
           owner: isEmailExist,
         });
       } catch (error) {
@@ -135,7 +142,7 @@ const authController = (
   ) => {
     try {
       const ownerData: GoogleResponseType = req.body;
-      const { accessToken, isEmailExist, newOwner } =
+      const { accessToken,refreshToken, isEmailExist, newOwner } =
         await authenticateGoogleOwner(
           ownerData,
           dbRepositoryOwner,
@@ -144,11 +151,42 @@ const authController = (
       const owner = isEmailExist ? isEmailExist : newOwner;
       res
         .status(HttpStatus.OK)
-        .json({ message: "login success", owner, accessToken });
+        .json({ message: "login success", owner,access_token: accessToken,
+          refresh_token : refreshToken});
     } catch (error) {
       next(error);
     }
   };
+
+  const getUserById = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const userId = req.params.id
+      const user = await getUserProfile(userId, dbRepositoryUser)
+      res.status(200).json({ success: true, user })
+    } catch (error) {
+      next(error)
+    }
+  }
+
+  const getUser = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const userId = req.params.id
+      const updatedData = req.body
+      const user = await updateUser(userId, updatedData, dbRepositoryUser)
+      res
+        .status(200)
+        .json({ success: true, user, message: "Profile updated successfully" })
+    } catch (error) {
+      console.log(error)
+
+      next(error)
+    }
+  }
+
 
   const forgotPassword = async (
     req: Request,
@@ -244,12 +282,17 @@ const authController = (
     res: Response,
     next: NextFunction
   ) => {
-    try {      
+    try {  
+      console.log("helloooo.....................$$$**.....")
+
       const id = req.params.id
-      console.log(id);
-      
+      console.log(id,"...................");
       const Hotel = await getHotelDetails(id, dbRepositoryHotel)
-      console.log(Hotel);
+      
+      if (!Hotel) {
+        return res.status(HttpStatus.NOT_FOUND).json({ success: false, error: "Hotel not found" });
+      }
+      console.log(Hotel,"####################################")
       return res.status(HttpStatus.OK).json({ success: true, Hotel })
     } catch (error) {
       next(error)
@@ -269,7 +312,9 @@ const authController = (
     verifyPhoneNumber,
     updateProfile,
     ownerProfile,
-    hotelDetails
+    hotelDetails,
+    getUserById,
+    getUser
   };
 };
 

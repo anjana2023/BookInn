@@ -1,15 +1,26 @@
 import express, { Application, Request, Response, NextFunction } from "express";
 import http from "http";
-
+import { Server } from "socket.io";
 import serverConfig from "./frameworks/webserver/server";
 import routes from "./frameworks/webserver/routes";
 import expressConfig from "./frameworks/webserver/expressConfig";
 import connectDB from "./frameworks/database/connection";
 import errorHandlingMiddleware from "./frameworks/webserver/middleware/errorhandlerMiddleware";
 import AppError from "./utils/appError";
+import socketConfig from "./frameworks/webserver/webSocket";
 const app: Application = express();
 
 const server = http.createServer(app);
+
+const io = new Server(server, {
+    cors: {
+      origin: true,
+      methods: ["GET", "POST"],
+      credentials: true,
+    },
+  });
+
+socketConfig(io);
 
 expressConfig(app);
 

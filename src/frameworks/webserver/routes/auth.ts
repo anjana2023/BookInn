@@ -17,6 +17,8 @@ import { hotelServiceInterface } from "../../../app/service-interface/hotelServi
 import bookingDbRepository from "../../database/repositories/bookingRepositoryMongoDB";
 import { hotelService } from "../../servies/hotelServices";
 import {userRepositoryMongoDB } from "../../database/repositories/userRepositoryMongoDB"
+import { ownerDbRepository } from "../../database/repositories/ownerRepository";
+import { ownerDbInterface } from "../../../app/interfaces/ownerDbInterface";
 
 const authRouter = () => {
   const router = express.Router();
@@ -24,7 +26,10 @@ const authRouter = () => {
     authServiceInterface,
     authService,
     userDbRepository,
-    userRepositoryMongoDB
+    userRepositoryMongoDB,
+    ownerDbInterface,
+    ownerDbRepository,
+   
   );
 
   router.post("/auth/register", controller.registerUser);
@@ -32,9 +37,10 @@ const authRouter = () => {
   router.post("/auth/verifyOtp", controller.verifyOtp);
   router.post("/auth/resendOtp", controller.resendOtp);
   router.post("/auth/forgot-password", controller.forgotPassword);
-
   router.post("/auth/reset_password/:token", controller.resetPassword);
   router.post("/auth/googleSignIn", controller.GoogleSignIn);
+  router.get("/OwnerDetails/:id",authenticateUser,controller.OwnerDetail);
+
 
   const userProfileController = profileController(
     authServiceInterface,
@@ -50,17 +56,18 @@ const authRouter = () => {
     authenticateUser,
     userProfileController.updateProfile
   );
-  // router.post("/auth/verify", userProfileController.verifyPhoneNumber);
-
 
   const userHotelController = hotelController(
     hotelDbInterface,
-    hotelDbRepository
+    hotelDbRepository,
+    bookingDbInterface,
+    bookingDbRepository,
   );
   router.get("/hotels", authenticateUser, userHotelController.getHotelsUserSide);
-  router.get("/hotelDetails/:id",userHotelController.hotelDetails);
-  router.get("/checkAvailability/:id", userHotelController.checkAvilabitiy);
+  router.get("/hotelDetails/:id",authenticateUser,userHotelController.hotelDetails);
+  router.get("/checkAvailability/:id",authenticateUser, userHotelController.checkAvilabitiy);
 
+ 
 
   const userBookingController = bookingController(
     bookingDbInterface,
@@ -74,14 +81,18 @@ const authRouter = () => {
    );
  
    router.post("/bookNow",authenticateUser,userBookingController.handleBooking)
-   router.patch("/payment_status/:id",userBookingController.updatePaymentStatus);
-   router.get("/bookingdetails/:id",userBookingController.getBookingDetails);
+   router.patch("/payment_status/:id",authenticateUser,userBookingController.updatePaymentStatus);
+   router.get("/bookingdetails/:id",authenticateUser,userBookingController.getBookingDetails);
+   router.patch("/booking/cancel/:bookingID",authenticateUser,userBookingController.cancelBooking)
    router.get("/allBookings",authenticateUser,userBookingController.getAllBooking);
-  //  router.get("/bookings/:id",authenticateUser,userBookingController.getAllBookingDetails);
-
-
-
-
+  router.get("/walletPayment",authenticateUser,userBookingController.walletPayment);
+ 
+  //user side
+  router.get("/fetchWallet/:id",authenticateUser,userBookingController.getWallet);
+  router.get("/transactions", authenticateUser, userBookingController.getTransactions);
+  router.get("/checkAvailability/:id", userHotelController.checkAvilabitiy);
+  router.get("/searchedHotels", userHotelController.destinationSearch)
+  router.get("/hotelDetails", userHotelController.DetailsFilter)
   return router;
 };
 export default authRouter;

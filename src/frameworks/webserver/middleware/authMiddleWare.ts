@@ -27,13 +27,16 @@ export default function authenticateUser(
   if (!token) {
     return res.status(HttpStatus.FORBIDDEN).json("Invalid access token format");
   }
+
   jwt.verify(token, configKeys.ACCESS_SECRET, (err: any, user: any) => {
     if (err) {
       res
         .status(HttpStatus.FORBIDDEN)
         .json({ success: false, message: "Token is not valid" });
     } else {
+      console.log(user.id,"/////////////user id from moddleware")
       req.user = user.id;
+
       next();
     }
   });

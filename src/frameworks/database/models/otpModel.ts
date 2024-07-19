@@ -9,5 +9,5 @@ const otpModel = new mongoose.Schema(
   },
   { timestamps: true }
 );
-otpModel.index({ createdAt: 1 }, { expireAfterSeconds: 120 });
+otpModel.index({ createdAt: 1 }, { expireAfterSeconds: 60 });
 export default mongoose.model("OTP", otpModel);

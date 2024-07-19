@@ -16,6 +16,12 @@ export default function bookingDbInterface(
   const getAllBookingByHotelId = async (doctorId: string) =>
     await repository.getAllBookingByHotelId(doctorId);
 
+  const changeBookingstatus = async (BookingStatus:string,cancelReason:string,id:string)=>
+    await repository.changeBookingStatus(BookingStatus,cancelReason,id);
+
+  const getBookingByHotels = async (bookingId: string[]) =>
+    await repository.getBookingByHotels(bookingId)
+
 
   const getBooking = async (bookingId: string) =>
     await repository.getBooking(bookingId);
@@ -35,7 +41,24 @@ export default function bookingDbInterface(
   ) => await repository.updateBookings(bookingId, updatingData);
 
 
+  const getBalanceAmount = async(userId:any)=>{
+    const balance = await repository.getWalletBalance(userId);
+    return balance
+  }
+  const changeTheWalletAmount = async(fees:any,UserId:any)=>{
+    await repository.changeTheWallet(fees,UserId);
+  }
 
+  const debitAmount = async(userId:any,Amount:any)=>{
+    const amount  = await repository.amountDebit(userId,Amount);
+  }
+
+  const creditAmount = async(price:any,UserId:any)=>{
+    const amount = await repository.amountCredit(price,UserId);
+  }
+
+  const getBookingById = async (bookingId: string) =>
+    await repository.getBookingById(bookingId);
 
   return {
     createBooking,
@@ -46,7 +69,14 @@ export default function bookingDbInterface(
     changeBookingstatusPayment,
     updateBookingDetails,
     getAllBookingByUserId,
-    getAllBookingByHotelId
+    getAllBookingByHotelId,
+    getBalanceAmount,
+    debitAmount,
+    creditAmount,
+    getBookingById,
+    changeTheWalletAmount,
+    changeBookingstatus,
+    getBookingByHotels
   };
 }
 

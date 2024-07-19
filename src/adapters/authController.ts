@@ -24,20 +24,26 @@ import {
 
 import { HttpStatus } from "../types/httpStatus";
 import { GoogleResponseType } from "../types/GoogleResponseTypes";
+import { ownerDbInterfaceType } from "../app/interfaces/ownerDbInterface";
+import { ownerDbRepositoryType } from "../frameworks/database/repositories/ownerRepository";
+import { getSingleOwner } from "../app/usecases/owner/auth/ownerAuth";
 
 const authController = (
   authServiceInterface: AuthServiceInterface,
   authServiceImpl: AuthService,
   userDbRepository: userDbInterface,
-  userDbRepositoryImpl: userRepositoryMongoDB
+  userDbRepositoryImpl: userRepositoryMongoDB,
+  ownerDbRepository: ownerDbInterfaceType,
+  ownerDbRepositoryImpl: ownerDbRepositoryType,
 ) => {
   const dbRepositoryUser = userDbRepository(userDbRepositoryImpl());
   const authService = authServiceInterface(authServiceImpl());
-
+  const dbRepositoryOwner = ownerDbRepository(ownerDbRepositoryImpl());
   const registerUser = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       try {
         const user: CreateUserInterface = req.body;
+        
         const newUser = await userRegister(user, dbRepositoryUser, authService);
         res.json({
           status: "success",
@@ -52,8 +58,9 @@ const authController = (
 
   const verifyOtp = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      console.log("asdfghjkjhgfdsdfgh");
+     
       const { otp, userid } = req.body;
+    
       const isVerified = await verifyOtpUser(otp, userid, dbRepositoryUser);
       if (isVerified) {
         return res
@@ -72,8 +79,7 @@ const authController = (
   const resendOtp = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { userId } = req.body;
-      console.log(userId);
-      console.log(userId);
+      
       await deleteOtp(userId, dbRepositoryUser, authService);
       res.json({ message: "New otp sent to mail" });
     } catch (error) {
@@ -84,8 +90,8 @@ const authController = (
   const userLogin = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       try {
-        console.log("Request Body:", req.body);
-        const { accessToken, isEmailExist } = await loginUser(
+     
+        const { accessToken,refreshToken, isEmailExist } = await loginUser(
           req.body,
           dbRepositoryUser,
           authService
@@ -94,7 +100,8 @@ const authController = (
         res.json({
           status: "success",
           message: "user logined",
-          accessToken,
+          access_token: accessToken,
+          refresh_token: refreshToken,
           user: isEmailExist,
         });
       } catch (error) {
@@ -110,12 +117,14 @@ const authController = (
   ) => {
     try {
       const userData: GoogleResponseType = req.body;
-      const { accessToken, isEmailExist, newUser } =
+      const { accessToken,refreshToken ,isEmailExist, newUser } =
         await authenticateGoogleUser(userData, dbRepositoryUser, authService);
       const user = isEmailExist ? isEmailExist : newUser;
       res
         .status(HttpStatus.OK)
-        .json({ message: "login success", user, accessToken });
+        .json({ message: "login success", user,  access_token: accessToken,
+          refresh_token: refreshToken 
+        });
     } catch (error) {
       next(error);
     }
@@ -161,6 +170,29 @@ const authController = (
     }
   };
 
+
+  const OwnerDetail = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {  
+      console.log("helloooo.....................$$$**.....")
+
+      const id = req.params.id
+      console.log(id,"...................");
+      const Hotel = await getSingleOwner(id, dbRepositoryOwner)
+      
+      if (!Hotel) {
+        return res.status(HttpStatus.NOT_FOUND).json({ success: false, error: "Hotel not found" });
+      }
+      console.log(Hotel,"####################################")
+      return res.status(HttpStatus.OK).json({ success: true, Hotel })
+    } catch (error) {
+      next(error)
+    }
+  }
+
   return {
     registerUser,
     userLogin,
@@ -169,6 +201,7 @@ const authController = (
     resetPassword,
     resendOtp,
     forgotPassword,
+    OwnerDetail,
   };
 };
 export default authController;

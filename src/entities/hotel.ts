@@ -3,12 +3,8 @@ export default function hotelEntity(
   email: string,
   ownerId: string,
   place: string,
-  price: string,
   description: string,
-  room: number,
-  guests: number,
   propertyRules: string[],
-  // reservationType: string,
   stayType: string,
   address: {
     streetAddress: string;
@@ -19,7 +15,8 @@ export default function hotelEntity(
     country: string;
   },
   amenities: string[],
-  imageUrls: string[]
+  imageUrls: string[],
+  hotelDocument:string
 ) {
   return {
     getName: (): string => name,
@@ -28,15 +25,11 @@ export default function hotelEntity(
     getPlace: (): string => place,
     getDescription: (): string => description,
     getPropertyRules: (): string[] => propertyRules,
-   
-    getRoom: (): number => room,
-    getGuests: (): number => guests,
-    getPrice:():string=>price,
-    // getReservationType: (): string => reservationType,
     getStayType: (): string => stayType,
     getAddress: () => address,
     getAmenities: (): string[] => amenities,
     getImageUrls: (): string[] => imageUrls,
+    getHotelDocument:():string=>hotelDocument,
   };
 }
 

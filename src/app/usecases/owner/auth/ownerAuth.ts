@@ -18,6 +18,7 @@ import {
 } from "../../../interfaces/ownerDbInterface";
 import sendMail from "../../../../utils/sendMail";
 import { forgotPasswordEmail, otpEmail } from "../../../../utils/userEmail";
+import { userDbInterface } from "../../../interfaces/userDbRepositories";
 
 export const OwnerRegister = async (
   owner: CreateOwnerInterface,
@@ -57,6 +58,15 @@ export const OwnerRegister = async (
   return newOwner;
 };
 
+export const getSingleUser = async ( id: string, userDbRepository: ReturnType<userDbInterface>) =>
+  await userDbRepository.getUserById(id);
+
+
+export const getSingleOwner = async ( id: string, ownerRepository: ReturnType<ownerDbInterfaceType>) =>
+  await ownerRepository.getOwnerById(id);
+
+
+
 export const loginOwner = async (
   owner: { email: string; password: string },
   ownerRepository: ReturnType<ownerDbInterfaceType>,
@@ -87,12 +97,12 @@ export const loginOwner = async (
     throw new AppError("Password is Wrong", HttpStatus.UNAUTHORIZED);
   }
 
-  const accessToken = authService.createTokens(
+  const {accessToken,refreshToken} = authService.createTokens(
     isEmailExist.id,
     isEmailExist.name,
     isEmailExist.role
   );
-  return { accessToken, isEmailExist };
+  return { accessToken, isEmailExist,refreshToken};
 };
 
 export const verifyOtpOwner = async (
@@ -104,11 +114,12 @@ export const verifyOtpOwner = async (
     throw new AppError("please provide an OTP", HttpStatus.BAD_REQUEST);
   }
   const otpOwner = await ownerRepository.findOtpWithOwner(ownerId);
-  console.log(otpOwner);
+  console.log(otpOwner,"...........................otp");
 
   if (!otpOwner) {
     throw new AppError("Invlaid OTP ", HttpStatus.BAD_REQUEST);
   }
+  
   if (otpOwner.otp === otp) {
     await ownerRepository.updateOwnerverification(ownerId);
     return true;
@@ -131,7 +142,7 @@ export const authenticateGoogleOwner = async (
     );
   }
   if (isEmailExist) {
-    const accessToken = authService.createTokens(
+    const {accessToken ,refreshToken}= authService.createTokens(
       isEmailExist.id,
       isEmailExist.name,
       isEmailExist.role
@@ -139,6 +150,7 @@ export const authenticateGoogleOwner = async (
     return {
       isEmailExist,
       accessToken,
+      refreshToken
     };
   } else {
     const googleOwner: GoogleOwnerEntityType = GoogleSignInOwnerEntity(
@@ -151,8 +163,8 @@ export const authenticateGoogleOwner = async (
     const newOwner = await ownerRepository.registerGoogleOwner(googleOwner);
     const ownerId = newOwner._id as unknown as string;
     const Name = newOwner.name as unknown as string;
-    const accessToken = authService.createTokens(ownerId, Name, role);
-    return { accessToken, newOwner };
+    const {accessToken ,refreshToken}= authService.createTokens(ownerId, Name, role);
+    return { accessToken, newOwner ,refreshToken};
   }
 };
 export const sendResetVerificationCode = async (
@@ -233,3 +245,9 @@ export const deleteOtp = async (
 
   console.log(newOtp, "----otp");
 };
+
+export const getOwnerById = async (
+  id: string,
+  doctorRepository: ReturnType<ownerDbInterfaceType>
+) => await doctorRepository.getOwnerById(id);
+

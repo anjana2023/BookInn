@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+import { TransactionEntityType } from "../../entities/transactionEntity";
 import { GoogleUserEntityType, userEntityType } from "./../../entities/user";
 
 import { userRepositoryMongoDB } from "./../../frameworks/database/repositories/userRepositoryMongoDB";
@@ -8,7 +10,11 @@ export const userDbRepository = (
   const getUserByEmail = async (email: string) =>
     await repository.getUserEmail(email);
 
-  const getUserById = async (id: string) => await repository.getUserbyId(id);
+  const getUserById = async (id: string) => {
+   const user =await repository.getUserbyId(id)
+   console.log('user fetehcted fotrm repo',user)
+return user
+    };
 
   const addUser = async (user: userEntityType) =>
     await repository.addUser(user);
@@ -24,6 +30,22 @@ export const userDbRepository = (
 
   const updateUserverification = async (userId: string) =>
     await repository.updateUserVerified(userId);
+
+  const getWallet = async (userId:string) =>await repository.getWalletUser(userId);
+
+  const getTransactions = async (userId:any) =>{
+    const response = await repository.getAllTransaction(userId);
+    return response;
+ }
+ 
+ const getTransaction=async(walletId: mongoose.Types.ObjectId)=>
+  await repository.allTransactions(walletId)
+
+
+
+ const addWallet = async (userID: string) =>
+  await repository.addWallet(userID);
+
 
   const registerGoogleoUser = async (user: GoogleUserEntityType) =>
     await repository.registerGoogleSignedUser(user);
@@ -50,6 +72,12 @@ export const userDbRepository = (
   const updateUserBlock = async (id: string, status: boolean) =>
     await repository.updateUserBlock(id, status);
 
+  const updateWallet = async (userId: string, newBalance: number) =>
+    await repository.updateWallet(userId, newBalance);
+
+  const createTransaction = async (transactionDetails: TransactionEntityType) =>
+    await repository.createTransaction(transactionDetails);
+
   return {
     getUserByEmail,
     addUser,
@@ -65,6 +93,12 @@ export const userDbRepository = (
     getAllUsers,
     updateUserBlock,
     getUserByNumber,
+    getWallet,
+    createTransaction,
+    updateWallet,
+    getTransactions,
+    addWallet,
+    getTransaction
   };
 };
 export type userDbInterface = typeof userDbRepository;

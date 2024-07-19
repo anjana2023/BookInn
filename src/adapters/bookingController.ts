@@ -5,12 +5,15 @@ import { bookingDbRepositoryType } from "../frameworks/database/repositories/boo
 import { hotelDbRepositoryType } from "../frameworks/database/repositories/hotelRepositoryMongoDB";
 import { HotelServiceType } from "../frameworks/servies/hotelServices";
 import { HttpStatus } from "../types/httpStatus";
-import { getUserProfile } from "../app/usecases/User/read&write/profile";
+import { WalletTransactions, getUserProfile, getWalletUser } from "../app/usecases/User/read&write/profile";
 import { userDbInterface } from "../app/interfaces/userDbRepositories";
 import { userRepositoryMongoDB } from "../frameworks/database/repositories/userRepositoryMongoDB";
 import { bookingDbInterfaceType }from "../app/interfaces/bookingDbInterface";
-import createBooking,{getBookingByBookingId, getBookingByHotelId, getBookingByUserId, makePayment, updateBookingStatus, updateBookingStatusPayment} from "../app/usecases/Booking/booking";
+import createBooking,{addUnavilableDates, cancelBookingAndUpdateWallet, changeWallet, changeWalletAmounti, getBookingByBookingId, getBookingByHotelId, getBookingByUserId, getBookingsByHotels, getTransaction, getWalletBalance, makePayment, removeUnavilableDates, updateBookingDetails, updateBookingStatus, updateBookingStatusPayment, walletDebit} from "../app/usecases/Booking/booking";
 import { HotelServiceInterface } from "../app/service-interface/hotelServices";
+import { getMyHotels } from "../app/usecases/owner/hotel";
+import { bookingService } from "../frameworks/servies/bookingService";
+import { bookingServiceInterface } from "../app/service-interface/bookingService";
 
 
 export default function bookingController(
@@ -28,29 +31,31 @@ export default function bookingController(
     const dbRepositoryHotel = hotelDbRepository(hotelDbRepositoryImpl())
     const dbRepositoryUser = userDbRepository(userDbRepositoryImpl());
     const hotelService=hotelServiceInterface(hotelServiceImpl())
+   
 
     const handleBooking = expressAsyncHandler(
       async (req: Request, res: Response, next: NextFunction) => {
         try {
           const bookingDetails = req.body;
           const userId = req.user;
-          console.log(userId);
+        
     
           const data = await createBooking(
             userId,
             bookingDetails,
             dbRepositoryBooking,
             dbRepositoryHotel,
-            hotelService
+            hotelService,
+            dbRepositoryUser
           );
-          console.log(data,"vhjvxsgc  vbvzCVbvcvc")
+          
     
           if (data && data.paymentMethod === "Online") {
             const user = await getUserProfile(userId, dbRepositoryUser);
             
     
             if (typeof data.price === 'number') {
-              console.log("before payment");
+              
               
               const sessionId = await makePayment(
                 user?.name,
@@ -58,7 +63,7 @@ export default function bookingController(
                 data._id.toString(),
                 data.price
               );
-              console.log("after,.....................................");
+           
               
               res.status(HttpStatus.OK).json({
                 success: true,
@@ -68,12 +73,34 @@ export default function bookingController(
             } else {
               throw new Error('Invalid price for online payment');
             }
-          } else {
+          }else if (data && data.paymentMethod === "Wallet") {
+         
+            const dates = await addUnavilableDates(
+              data.rooms,
+              data.checkInDate ?? new Date(),
+              data.checkOutDate ?? new Date(),
+              dbRepositoryHotel,
+              hotelService
+            )
             res.status(HttpStatus.OK).json({
               success: true,
               message: "Booking created successfully using Wallet",
               booking: data,
-            });
+            })
+          } else {
+            
+            const dates = await addUnavilableDates(
+              data.rooms,
+              data.checkInDate ?? new Date(),
+              data.checkOutDate ?? new Date(),
+              dbRepositoryHotel,
+              hotelService
+            )
+            res.status(HttpStatus.OK).json({
+              success: true,
+              message: "Booking created successfully ",
+              booking: data,
+            })
           }
         } catch (error) {
           next(error);
@@ -87,70 +114,245 @@ export default function bookingController(
       next: NextFunction
     ) => {
       try {
-        const { id } = req.params;
-        console.log("nnnn")
-        const { paymentStatus } = req.body;
-       console.log()
-        const updateStatus = await updateBookingStatusPayment(
-        id,
-        dbRepositoryBooking,
-        )
+        const { id } = req.params
+        const { paymentStatus } = req.body
+       
+        if (paymentStatus === "Paid") {
   
+          const bookings = await getBookingByBookingId(id, dbRepositoryBooking)
+
+  
+          if (bookings) {
+            const dates = await addUnavilableDates(
+              bookings.rooms,
+              bookings.checkInDate ?? new Date(),
+              bookings.checkOutDate ?? new Date(),
+              dbRepositoryHotel,
+              hotelService
+            )
+          }
+        }
   
         await updateBookingStatus(
           id,
           paymentStatus,
           dbRepositoryBooking,
-        );
+          dbRepositoryHotel
+        )
         res
           .status(HttpStatus.OK)
-          .json({ success: true, message: "Booking status updated" });
+          .json({ success: true, message: "Booking status updated" })
       } catch (error) {
         next(error)
-  
       }
     }
 
-
-    // const cancelBooking = async(
-    //   req:Request,
-    //   res:Response,
-    //   next:NextFunction
-    // )=>{
-    //   try {
-    //     const {BookingStatus} = req.body;
-    //     const {cancelReason} = req.body;
-    //     const {id} = req.params;
-  
-    //     const updateBooking = await changeBookingstaus(
-    //       BookingStatus,
-    //       cancelReason,
-    //       id,
-    //       dbRepositoryBooking
-    //     );
-  
-    //     res
-    //       .status(HttpStatus.OK)
-    //       .json({ success: true, message: "Cancel Appoinment" });
-  
-    //   } catch (error) {
-    //     next(error)
-    //   }
-    // }
-
-
-    const getBookingDetails = async (
+    const getOwnerBookings = async (
       req: Request,
       res: Response,
       next: NextFunction
     ) => {
       try {
-        const { id } = req.params;
-        console.log(id,"ndascjhbdhuabvcydwagsvcgadvc")
+        const OwnerId = req.owner
+        const hotels = await getMyHotels(OwnerId, dbRepositoryHotel)
+  
+        
+        const HotelIds: string[] = hotels.map((hotel) => hotel._id.toString());
+  
+        const bookings=await getBookingsByHotels(HotelIds,dbRepositoryBooking)
+        
+  
+        
+        res.status(HttpStatus.OK).json({
+          success: true,
+          message: "Bookings fetched successfully",
+          bookings,
+        })
+      } catch (error) {
+        next(error)
+      }
+    }
+
+
+
+
+  /**wallet payment */
+
+  const walletPayment = async (
+    req:Request,
+    res:Response,
+    next:NextFunction
+  )=>{
+    try {
+      const userId=req.user;
+      
+      const transaction=await getTransaction(userId,dbRepositoryUser);
+      res
+      .status(200)
+      .json({ success: true, transaction, message: "transactions" });
+      
+    } catch (error) {
+      console.log(error);
+      
+      next(error)
+    }
+  }
+
+
+ /**update the wallet  */
+ const changeWalletAmount = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { bookingId, price } = req.body;
+
+    
+    
+    const updateWallet = await changeWallet(
+      bookingId,
+      price,
+      dbRepositoryBooking
+    );
+    res.status(HttpStatus.OK).json({
+      success: true,
+      message: "Bookings details fetched successfully",
+    });
+
+  } catch (error) {
+    next(error)
+
+  }
+}
+
+
+const cancelBooking = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userID = req.user
+    const { bookingID } = req.params
+  
+    const { reason, status } = req.body
+
+    const updateBooking = await cancelBookingAndUpdateWallet(
+      userID,
+      bookingID,
+      status,
+      reason,
+      dbRepositoryBooking,
+      dbRepositoryUser,
+      bookingServiceInterface(bookingService())
+    )
+    if (updateBooking) {
+      const dates = await removeUnavilableDates(
+        updateBooking.rooms,
+        updateBooking.checkInDate ?? new Date(),
+        updateBooking.checkOutDate ?? new Date(),
+        dbRepositoryHotel,
+        hotelService
+      )
+    }
+    res.status(HttpStatus.OK).json({
+      success: true,
+      message: "Booking cancelled successfully",
+      booking: updateBooking,
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+const updateBooking = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userID = req.user
+    const { reason, status } = req.body
+
+    const { bookingID } = req.params
+
+    const updateBooking = await updateBookingDetails(
+      userID,
+      status,
+      reason,
+      bookingID,
+      dbRepositoryBooking,
+      dbRepositoryUser
+    )
+    res.status(HttpStatus.OK).json({
+      success: true,
+      message: "Booking cancelled successfully",
+      booking: updateBooking,
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+
+
+
+/**
+   * * METHOD :GET
+   * * Retrieve  user wallet
+   */
+const getWallet = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const {id} = req.params;
+    
+    const getWallet = await getWalletUser(id,dbRepositoryUser);
+    res.status(200).json({ success: true, getWallet});
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**Method Get fetch transactions */
+
+const getTransactions = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.user;
+    const transaction = await WalletTransactions(userId, dbRepositoryUser);
+    res.status(200).json({
+      success: true,
+      transaction,
+      message: "Transactions fetched successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+
+
+    const getBookingDetails = async (
+      req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const ID = req.params.id
+     
         const  data  = await getBookingByBookingId(
-          id,
+          ID,
           dbRepositoryBooking
         );
+       
         res.status(HttpStatus.OK).json({
           success: true,
           message: "Bookings details fetched successfully",
@@ -195,7 +397,6 @@ export default function bookingController(
       try {
         const userID = req.user;
         const bookings = await getBookingByUserId(userID, dbRepositoryBooking);
-        console.log(bookings,"bookingssssssssssss")
 
         res.status(HttpStatus.OK).json({
           success: true,
@@ -241,6 +442,13 @@ export default function bookingController(
       getBookingDetails,
       getAllBookingDetails,
       getAllBooking,
-      getBookingList
+      getBookingList,
+      walletPayment,
+      changeWalletAmount,
+      cancelBooking,
+      getTransactions,
+      getWallet,
+      getOwnerBookings,
+      updateBooking
     }
 }

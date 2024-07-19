@@ -59,24 +59,16 @@ const hotelSchema = new Schema(
       required: true,
     },
     propertyRules: [String],
+    rooms: [{
+      type: Schema.Types.ObjectId,
+      ref: "Room"
+    }],
    stayType: {
     type: String,
     required: true,
   },
-    room: {
-      type: Number,
-      required: true,
-    },
- 
-    guests: {
-      type: Number,
-      required: true,
-    },
-    price: {
-      type: String,
-      required: true,
-    },
     amenities: [String],
+
     isBlocked: {
       type: Boolean,
       default: false,
@@ -85,9 +77,24 @@ const hotelSchema = new Schema(
       type:Boolean,
       default:false,
     },
-    status:{
-      type:String,
-      default:"pending",
+    hotelDocument: {
+      type: String,
+    },
+    location:{
+      type: {
+        type: String,
+        enum: ["Point"],
+        default: "Point",
+      },
+      coordinates: {
+        type: [Number],
+        default: [0, 0],
+      },
+    },
+    isVerified: {
+      type: String,
+      enum: ["rejected", "cancelled", "pending", "verified"],
+      default: "pending",
     },
     rejectedReason:{
       type:String,
@@ -112,6 +119,6 @@ hotelSchema.pre("save", async function (next) {
   next();
 });
 
-
+hotelSchema.index({location:"2dsphere"});
 const Hotel = model("Hotel", hotelSchema);
 export default Hotel;
