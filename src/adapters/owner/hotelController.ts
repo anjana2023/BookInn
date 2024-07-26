@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from "express";
 import { HotelRejected, addHotel, addRoom, blockHotel, getMyHotels, updateHotel } from "../../app/usecases/owner/hotel";
 import { hotelDbInterfaceType } from "../../app/interfaces/hotelDbInterface";
 import { HttpStatus } from "../../types/httpStatus";
-import { filterHotels, getHotelDetails, getUserHotels, hotelDetailsFilter } from "../../app/usecases/User/read&write/hotel";
+import { addNewRating, filterHotels, getHotelDetails, getUserHotels, hotelDetailsFilter, ratings, ReviewById, updateReviewById } from "../../app/usecases/User/read&write/hotel";
 import { checkAvailability, getBookingsByHotels } from "../../app/usecases/Booking/booking";
 import mongoose from "mongoose";
 import { bookingDbInterfaceType } from "../../app/interfaces/bookingDbInterface";
@@ -94,6 +94,7 @@ const hotelController = (
     next: NextFunction
   ) => {
     try {
+      console.log(req.user,"..67889909988764784904--4893873.....")
       if (req.user) {
         const Hotels = await getUserHotels(dbRepositoryHotel);
         return res.status(HttpStatus.OK).json({ success: true, Hotels });
@@ -109,7 +110,6 @@ const hotelController = (
     next: NextFunction
   ) => {
     try {
-      console.log(req.query, "all values")
       const place = req.query.destination as string
       const adults = req.query.adult as string
       const children = req.query.children as string
@@ -124,7 +124,6 @@ const hotelController = (
       const page = parseInt(req.query.pages as string) || 1
       const limit = 2
       const skip = (page - 1) * limit
-      console.log(skip, limit, "...............")
 
       const data = await filterHotels(
         place,
@@ -324,7 +323,75 @@ const hotelController = (
     }
   }
 
+  const addRating = async (req: Request, res: Response, next: NextFunction) => {
+    const userId = req.user
+    const data = req.body
+    console.log("helooooo")
+    const result = await addNewRating(userId, data, dbRepositoryHotel)
+    if (result) {
+      return res
+        .status(HttpStatus.OK)
+        .json({ success: true, message: "  Successfully added rating" })
+    } else {
+      return res.status(HttpStatus.NOT_FOUND).json({ success: false })
+    }
+  }
 
+  const getRatingsbyHotelId = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    const hotelId = req.params.hotelId
+    const result = await ratings(hotelId, dbRepositoryHotel)
+    if (result) {
+      return res.status(HttpStatus.OK).json({
+        success: true,
+        message: "  Successfully getted rating",
+        result,
+      })
+    } else {
+      return res.status(HttpStatus.NOT_FOUND).json({ success: false })
+    }
+  }
+
+  const getRatingsbyId = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    const Id = req.params.Id    
+    const result = await ReviewById(Id, dbRepositoryHotel)    
+    if (result) {
+      return res.status(HttpStatus.OK).json({
+        success: true,
+        message: "  Successfully getted rating",
+        result,
+      })
+    } else {
+      return res.status(HttpStatus.NOT_FOUND).json({ success: false })
+    }
+  }
+
+
+  const updateRatingsbyId = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    const Id = req.params.Id    
+    const updates=req.body    
+    const result = await updateReviewById(Id,updates, dbRepositoryHotel)    
+    if (result) {
+      return res.status(HttpStatus.OK).json({
+        success: true,
+        message: "  Successfully getted rating",
+        result,
+      })
+    } else {
+      return res.status(HttpStatus.NOT_FOUND).json({ success: false })
+    }
+  }
 
 
   return {
@@ -339,7 +406,11 @@ const hotelController = (
     checkAvilabitiy,
     getHotelRejected,
     destinationSearch,
-    DetailsFilter
+    DetailsFilter,
+    updateRatingsbyId,
+    getRatingsbyId,
+    getRatingsbyHotelId,
+    addRating
   };
 };
 

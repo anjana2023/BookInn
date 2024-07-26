@@ -3,6 +3,7 @@ import { HotelEntityType } from "../../entities/hotel";
 import { RoomEntityType } from "../../entities/room";
 import Hotel from "../../frameworks/database/models/hotelModel";
 import { hotelDbRepositoryType } from "../../frameworks/database/repositories/hotelRepositoryMongoDB";
+import { RatingEntityType } from "../../entities/rating";
 
 export const hotelDbInterface = (
   repository: ReturnType<hotelDbRepositoryType>
@@ -89,7 +90,7 @@ export const hotelDbInterface = (
     skip: number,
     limit: number
   ) =>
-    await repository.filterHotels(
+  {const data= await repository.filterHotels(
       place,
       adults,
       children,
@@ -103,6 +104,8 @@ export const hotelDbInterface = (
       skip,
       limit
     )
+    return data
+  }
 
     const UserfilterHotelBYId = async (
       id: string,
@@ -126,6 +129,16 @@ export const hotelDbInterface = (
       )
 
 
+      const addRating = async (ratingData: RatingEntityType) =>
+        await repository.addRating(ratingData)
+    
+      const getRatings = async (filter: Record<string, any>) =>
+        await repository.getRatings(filter)
+    
+      const getRatingById = async (id: string) => await repository.getRatingById(id)
+    
+      const updateRatings = async (id: string, updates: Record<string, any>) =>
+        await repository.updateRatingById(id,updates)
   
   return {
     addHotel,
@@ -149,7 +162,12 @@ export const hotelDbInterface = (
     addUnavilableDates,
     removeUnavailableDates,
     filterHotels,
-    UserfilterHotelBYId
+    UserfilterHotelBYId,
+    addRating,
+    getRatings,
+    getRatingById,
+    updateRatings
+    
   };
 };
 

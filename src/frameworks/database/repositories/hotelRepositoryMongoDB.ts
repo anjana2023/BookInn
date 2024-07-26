@@ -6,6 +6,8 @@ import Room from '../models/roomModel';
 import mongoose from 'mongoose';
 import { RoomEntityType } from '../../../entities/room';
 import Category from '../models/categoryModel';
+import Rating from '../models/ratingModel';
+import { RatingEntityType } from '../../../entities/rating';
 
 export const hotelDbRepository=()=>{
     const addHotel=async(hotel:HotelEntityType)=>{
@@ -231,7 +233,7 @@ const updateUnavailableDates = async (id: string, dates: any) =>
   }
 
   const filterHotels = async (
-    destination: string,
+    place: string,
     adults: string,
     children: string,
     room: string,
@@ -244,86 +246,110 @@ const updateUnavailableDates = async (id: string, dates: any) =>
     skip: number,
     limit: number
   ) => {
-    let hotels: any[]
-
-    if (destination) {
-      const regex = new RegExp(destination, "i")
-      hotels = await Hotel.find({
-        $or: [{ destination: { $regex: regex } }, { name: { $regex: regex } }],
-        isVerified: "verified",
-        isListed: true,
-        isBlocked: false,
-      }).populate("rooms")
-    } else {
-      hotels = await Hotel.find({
-        isVerified: "verified",
-        isListed: true,
-        isBlocked: false,
-      }).populate("rooms")
-    }
-
-    const adultsInt = adults ? parseInt(adults) : 0
-    const childrenInt = children ? parseInt(children) : 0
-
-    hotels = hotels.filter((hotel: HotelInterface) => {
-      const filteredRooms = hotel.rooms.filter((room: RoomInterface) => {
-        return room.maxAdults >= adultsInt && room.maxChildren >= childrenInt
-      })
-      if (filteredRooms.length > 0) {
-        hotel.rooms = filteredRooms
-        return true
+    let hotels: any[];
+  
+    console.log("Filtering hotels with parameters:", {
+      place,
+      adults,
+      children,
+      room,
+      startDate,
+      endDate,
+      amenities,
+      minPrice,
+      maxPrice,
+      categories,
+      skip,
+      limit,
+    });
+  
+    try {
+      // Fetch hotels based on place
+      if (place) {
+        const regex = new RegExp(place, "i");
+        hotels = await Hotel.find({
+          $or: [{ place: { $regex: regex } }, { name: { $regex: regex } }],
+          isApproved: true,
+          isBlocked: false,
+        }).populate("rooms");
+      } else {
+        hotels = await Hotel.find({
+          isApproved: true,
+          isBlocked: false,
+        }).populate("rooms");
       }
-      return false
-    })
-
-    const start = splitDate(startDate)
-    const end = splitDate(endDate)
-    const dates = await getDates(start.date, end.date)
-
-    const isRoomNumberAvailable = (roomNumber: {
-      number: number
-      unavailableDates: Date[]
-    }): boolean => {
-      return !roomNumber.unavailableDates.some((date: Date) => {
-        const curr = new Date(date).toISOString().split("T")[0]
-        return dates.includes(curr)
-      })
-    }
-
-    if (minPrice && maxPrice && parseInt(maxPrice) !== 0) {
-      const minPriceInt = parseInt(minPrice)
-      const maxPriceInt = parseInt(maxPrice)
-      console.log(minPriceInt, "-----", maxPriceInt)
-
+  
+      // Filter by room capacity
+      const adultsInt = adults ? parseInt(adults) : 0;
+      const childrenInt = children ? parseInt(children) : 0;
+  
       hotels = hotels.filter((hotel: HotelInterface) => {
         const filteredRooms = hotel.rooms.filter((room: RoomInterface) => {
-          const result =
-            room.price !== undefined &&
-            room.price >= minPriceInt &&
-            room.price <= maxPriceInt
-          return result
-        })
+          return room.maxAdults >= adultsInt && room.maxChildren >= childrenInt;
+        });
         if (filteredRooms.length > 0) {
-          hotel.rooms = filteredRooms
-          return true
+          hotel.rooms = filteredRooms;
+          return true;
         }
-        return false
-      })
+        return false;
+      });
+  
+      // Filter by availability and dates
+      const start = splitDate(startDate);
+      const end = splitDate(endDate);
+      const dates = await getDates(start.date, end.date);
+  
+      const isRoomNumberAvailable = (roomNumber: {
+        number: number;
+        unavailableDates: Date[];
+      }): boolean => {
+        return !roomNumber.unavailableDates.some((date: Date) => {
+          const curr = new Date(date).toISOString().split("T")[0];
+          return dates.includes(curr);
+        });
+      };
+  
+      // Filter by price range
+      if (minPrice && maxPrice && parseInt(maxPrice) !== 0) {
+        const minPriceInt = parseInt(minPrice, 10);
+        const maxPriceInt = parseInt(maxPrice, 10);
+        console.log("Price range:", minPriceInt, maxPriceInt);
+  
+        hotels = hotels.filter((hotel: HotelInterface) => {
+          const filteredRooms = hotel.rooms.filter((room: RoomInterface) => {
+            return room.price !== undefined &&
+                   room.price >= minPriceInt &&
+                   room.price <= maxPriceInt;
+          });
+  
+          if (filteredRooms.length > 0) {
+            hotel.rooms = filteredRooms;
+            return true;
+          }
+          return false;
+        });
+      }
+  
+      // Filter by amenities
+      if (amenities) {
+        const amenitiesArr = amenities.split(",");
+        hotels = hotels.filter(hotel => {
+          return amenitiesArr.every(amenity => hotel.amenities.includes(amenity));
+        });
+      }
+  
+      // Pagination
+      const paginatedHotels = hotels.slice(skip, skip + limit);
+  
+      console.log("Filtered hotels:", paginatedHotels);
+      return paginatedHotels;
+    } catch (error) {
+      console.error("Error filtering hotels:", error);
+      throw new Error("Failed to filter hotels");
     }
-    console.log(hotels, " before   hotelssssssssss")
-
-    if (amenities) {
-      const amenitiesArr = amenities.split(",")
-      hotels = hotels.filter(hotel => {
-        return amenitiesArr.every(amenity => hotel.amenities.includes(amenity))
-      })
-    }
-
-    console.log(hotels, "hotelssssssssss")
-    const paginatedHotels = hotels.slice(skip, skip + limit)
-
-    return paginatedHotels
-  }
+  };
+  
+  
 
  const UserfilterHotelBYId = async (
     id: string,
@@ -338,11 +364,12 @@ const updateUnavailableDates = async (id: string, dates: any) =>
     try {
       // Fetch the hotel by ID and populate rooms
       const hotel = await Hotel.findById(id).populate("rooms")
-
+  
       if (!hotel) {
         throw new Error("Hotel not found")
       }
-
+   
+      console.log(hotel,"233333333333333333333333333")
       // Convert string inputs to numbers
       const adultsInt = adults ? parseInt(adults) : 0
       const childrenInt = children ? parseInt(children) : 0
@@ -379,9 +406,7 @@ const updateUnavailableDates = async (id: string, dates: any) =>
       hotel.rooms = hotel.rooms.filter(
         (room: any) => room.roomNumbers.length > 0
       )
-
-      // Return the hotel with filtered rooms
-      console.log(hotel, "Filtered hotel with available rooms")
+    
       return hotel
     } catch (error) {
       console.error("Error filtering hotel:", error)
@@ -391,6 +416,42 @@ const updateUnavailableDates = async (id: string, dates: any) =>
 
 
 
+  
+  const addRating = async (ratingData: RatingEntityType) => {
+    const result = new Rating({
+      userId: ratingData.getUserId(),
+      hotelId: ratingData.getHotelId(),
+      rating: ratingData.getRating(),
+      description: ratingData.getDescription(),
+      imageUrls: ratingData.getImageUrls(),
+    })
+    const savedRating = await result.save()
+
+    try {
+      await Hotel.findByIdAndUpdate(savedRating.hotelId, {
+        $push: { rating: savedRating._id },
+      })
+    } catch (error) {
+    }
+
+    return savedRating
+  }
+
+  const getRatings = async (filter: Record<string, any>) =>
+    await Rating.find(filter).populate("userId")
+
+  const getRatingById = async (id:string) =>
+    await Rating.findById(id).populate("userId")
+
+  const updateRatingById = async (id: string, updates: Record<string, any>) => {
+    try {
+      const result = await Rating.findByIdAndUpdate(id, updates, { new: true });
+      return result;
+    } catch (error) {
+      console.error('Error updating rating:', error);
+      throw error;
+    }
+  };
 
     return{
         addHotel,
@@ -415,9 +476,11 @@ const updateUnavailableDates = async (id: string, dates: any) =>
         addUnavilableDates,
         deleteRoom,
         removeUnavailableDates,
-        filterHotels
-      
-        // getHotelbyId
+        filterHotels,
+        getRatingById,
+        getRatings,
+        addRating,
+        updateRatingById
     }
 }
 export type hotelDbRepositoryType=typeof hotelDbRepository;

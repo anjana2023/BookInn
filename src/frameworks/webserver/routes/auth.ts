@@ -66,6 +66,10 @@ const authRouter = () => {
   router.get("/hotels", authenticateUser, userHotelController.getHotelsUserSide);
   router.get("/hotelDetails/:id",authenticateUser,userHotelController.hotelDetails);
   router.get("/checkAvailability/:id",authenticateUser, userHotelController.checkAvilabitiy);
+  router.post("/addRating", authenticateUser, userHotelController.addRating)
+  router.get("/getRating/:hotelId", userHotelController.getRatingsbyHotelId)
+  router.get("/getRatingById/:Id", userHotelController.getRatingsbyId)
+  router.patch("/updateRatingById/:Id", userHotelController.updateRatingsbyId)
 
  
 

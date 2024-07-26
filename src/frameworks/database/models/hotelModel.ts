@@ -91,6 +91,10 @@ const hotelSchema = new Schema(
         default: [0, 0],
       },
     },
+    status:{
+      type:String,
+      default:"pending",
+    },
     isVerified: {
       type: String,
       enum: ["rejected", "cancelled", "pending", "verified"],
