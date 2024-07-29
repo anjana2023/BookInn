@@ -37,6 +37,7 @@ export default async function createBooking(
     checkOutDate,
     totalDays,
     price,
+    platformFee,
     paymentMethod,
   } = bookingDetails;
   console.log(bookingDetails);
@@ -53,6 +54,7 @@ export default async function createBooking(
     !checkInDate ||
     !checkOutDate ||
     !price ||
+    !platformFee||
     !totalDays ||
     !paymentMethod
   ) {
@@ -73,6 +75,7 @@ export default async function createBooking(
     totalDays,
     rooms,
     price,
+    platformFee,
     paymentMethod
   );
 

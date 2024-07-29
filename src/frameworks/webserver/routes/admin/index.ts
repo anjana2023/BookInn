@@ -9,6 +9,8 @@ import adminController from "../../../../adapters/admin/adminController";
 import { authenticateAdmin } from "../../middleware/authMiddleWare";
 import { hotelDbInterface } from "../../../../app/interfaces/hotelDbInterface";
 import { hotelDbRepository } from "../../../database/repositories/hotelRepositoryMongoDB";
+import bookingDbInterface from "../../../../app/interfaces/bookingDbInterface";
+import bookingDbRepository from "../../../database/repositories/bookingRepositoryMongoDB";
 
 
 const adminRouter = () => {
@@ -21,14 +23,16 @@ const adminRouter = () => {
     ownerDbInterface,
     ownerDbRepository,
     hotelDbInterface,
-    hotelDbRepository
+    hotelDbRepository,
+    bookingDbInterface,
+    bookingDbRepository
   );
   router.post("/login", controller.adminLogin);
   router.get("/users", authenticateAdmin, controller.getAllUsers);
   router.get("/owners", authenticateAdmin, controller.getAllOwners);
   router.get("/hotels",controller.getAllHotels)
   router.get("/hotelDetails/:id",controller.hotelDetails);
-  router.get("/bookings",authenticateAdmin, controller.getAllBookings);
+  router.get("/bookings", controller.getBookings);
 
   router.patch("/block_user/:id", controller.userBlock);
   router.patch("/block_owner/:id",  controller.ownerBlock);

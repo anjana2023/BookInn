@@ -18,6 +18,7 @@ export default function bookingDbRepository() {
         checkOutDate: bookingEntity.getCheckOutDate(),
       totalDays:bookingEntity.getTotalDays(),
       price: bookingEntity.getPrice(),
+      platformFee:bookingEntity.getPlatformFee(),
       rooms: bookingEntity.getRooms(),
       paymentMethod:bookingEntity.getPaymentMethod(),
     })
@@ -30,11 +31,16 @@ export default function bookingDbRepository() {
   }
 
   const getAllBooking = async () => {
-    const bookings = await Booking.find()
-
-    return bookings
+    try {
+      const bookings = await Booking.find()
+        .sort({ updatedAt: -1 })
+        .populate("userId")
+        .populate("hotelId")
+      return bookings
+    } catch (error) {
+      throw new Error("Error fetching all bookings")
+    }
   }
-
   const getBookingBybookingId = async (id: string) => {
     try {
       const booking = await Booking.findOne({ bookingId: id }).populate("userId").populate("hotelId");

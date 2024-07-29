@@ -12,12 +12,14 @@ import {
 } from "../../app/interfaces/ownerDbInterface";
 import { ownerDbRepositoryType } from "../../frameworks/database/repositories/ownerRepository";
 import { userRepositoryMongoDB } from "../../frameworks/database/repositories/userRepositoryMongoDB";
-import { addStayType, fetchAllBookings, getOwners, getUsers } from "../../app/usecases/admin/adminRead";
+import { addStayType, fetchAllBookings, getALLBookings, getOwners, getUsers } from "../../app/usecases/admin/adminRead";
 import { blockOwner, blockUser } from "../../app/usecases/admin/adminUpdate";
 import { getHotel, getHotelRejected, getHotels } from "../../app/usecases/owner/hotel";
 import { hotelDbInterface, hotelDbInterfaceType } from "../../app/interfaces/hotelDbInterface";
 import { hotelDbRepository, hotelDbRepositoryType } from "../../frameworks/database/repositories/hotelRepositoryMongoDB";
 import { getHotelDetails } from "../../app/usecases/User/read&write/hotel";
+import { bookingDbInterfaceType } from "../../app/interfaces/bookingDbInterface";
+import { bookingDbRepositoryType } from "../../frameworks/database/repositories/bookingRepositoryMongoDB";
 
 
 
@@ -29,12 +31,15 @@ const adminController = (
   ownerDbRepository: ownerDbInterfaceType,
   ownerDbRepositoryImpl: ownerDbRepositoryType,
   hotelDbRepository: hotelDbInterfaceType,
-  hotelDbRepositoryImpl: hotelDbRepositoryType
+  hotelDbRepositoryImpl: hotelDbRepositoryType,
+  bookingDbRepository: bookingDbInterfaceType,
+  bookingDbRepositoryImpl: bookingDbRepositoryType
 ) => {
   const authService = authServiceInterface(authServiceImpl());
   const dbUserRepository = userDbRepository(userDbRepositoryImpl());
   const dbOwnerRepository = ownerDbRepository(ownerDbRepositoryImpl());
   const dbRepositoryHotel = hotelDbRepository(hotelDbRepositoryImpl());
+  const dbRepositoryBooking = bookingDbRepository(bookingDbRepositoryImpl());
 
   const adminLogin = async (
     req: Request,
@@ -66,6 +71,7 @@ const adminController = (
   ) => {
     try {
       const users = await getUsers(dbUserRepository);
+      console.log(users,"users")
       return res.status(HttpStatus.OK).json({ success: true, users });
     } catch (error) {
       next(error);
@@ -79,6 +85,7 @@ const adminController = (
   ) => {
     try {
       const owners = await getOwners(dbOwnerRepository);
+      console.log(owners,"owners")
       return res.status(HttpStatus.OK).json({ success: true, owners });
     } catch (error) {
       next(error);
@@ -178,18 +185,22 @@ const rejectionHotel = async(
 }
 
 
-const getAllBookings = async (
+const getBookings = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  try {
-    const bookings:any = await fetchAllBookings(dbRepositoryHotel);
-    return res.status(HttpStatus.OK).json({ success: true, bookings });
-  } catch (error) {
-    next(error);
+  const result = await getALLBookings(dbRepositoryBooking)
+  if (result) {
+    return res.status(HttpStatus.OK).json({
+      success: true,
+      message: "  Successfully getted booking",
+      result,
+    })
+  } else {
+    return res.status(HttpStatus.NOT_FOUND).json({ success: false })
   }
-};
+}
 
 const addCategory = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -218,7 +229,7 @@ const addCategory = async (req: Request, res: Response, next: NextFunction) => {
     getAllHotels,
     hotelDetails,
     VerifyHotel,
-    getAllBookings,
+    getBookings,
     rejectionHotel,
     addCategory
   };

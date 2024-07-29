@@ -76,6 +76,11 @@ const bookingSchema = new mongoose.Schema(
       trim: true,
       require: true,
     },
+    platformFee: {
+      type: Number,
+      trim: true,
+      require: true,
+    },
     wallet: { type: mongoose.Schema.Types.ObjectId, ref: "Wallet" },
     paymentMethod: {
       type: String,
