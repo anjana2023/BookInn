@@ -22,8 +22,7 @@ export default function bookingDbRepository() {
       rooms: bookingEntity.getRooms(),
       paymentMethod:bookingEntity.getPaymentMethod(),
     })
-    console.log("hlooooo");
-    
+
 
     newBooking.save()
 

@@ -16,7 +16,6 @@ export const ownerDbInterface = (
     await repository.addOtp(otp, id);
 
   const findOtpWithOwner = async (ownerId: string) => {
-    console.log(ownerId, "abc");
 
     return await repository.findOwnerOtp(ownerId);
   };

@@ -33,7 +33,7 @@ const hotelController = (
     try {
       const ownerId = req.owner;
       const hotelData = req.body;
-      console.log(hotelData,"data from adddggggggdddd");
+      
       
       const registeredHotel = await addHotel(ownerId, hotelData, dbRepositoryHotel);
       res.json({
@@ -54,8 +54,7 @@ const hotelController = (
   ) => {
     try {
       const hotelId = new mongoose.Types.ObjectId(req.params.id)
-      console.log(hotelId)
-      console.log(req.body, "data")
+    
 
       const roomData = req.body
 
@@ -94,7 +93,6 @@ const hotelController = (
     next: NextFunction
   ) => {
     try {
-      console.log(req.user,"..67889909988764784904--4893873.....")
       if (req.user) {
         const Hotels = await getUserHotels(dbRepositoryHotel);
         return res.status(HttpStatus.OK).json({ success: true, Hotels });
@@ -156,7 +154,7 @@ const hotelController = (
     next: NextFunction
   ) => {
     try {
-      console.log(req.query, "all values")
+    
       const id = req.query.id as string
       const adults = req.query.adult as string
       const children = req.query.children as string
@@ -196,10 +194,10 @@ const hotelController = (
   ) => {
     try {
       const id = req.params.id;
-    console.log('heloooooo')
+   
     
       const Hotel = await getHotelDetails(id, dbRepositoryHotel);
-      console.log(Hotel)
+   
       return res.status(HttpStatus.OK).json({ success: true, Hotel });
     } catch (error) {
       next(error);
@@ -214,7 +212,6 @@ const hotelController = (
   
       try {
         const { id } = req.params
-        console.log("edit,,,,,,,,,,",id)
         const result = await updateHotel(id, req.body, dbRepositoryHotel)
         if (result) {
           return res
@@ -272,22 +269,7 @@ const hotelController = (
       const dates = req.body
       const id = req.params.id
       const isDateExisted=await checkAvailability( id,dates,dbRepositoryHotel)
-      console.log(isDateExisted);
-      
-      // if(!isDateExisted){
-      //   console.log("hloooo");
-        
-      //   res.status(HttpStatus.OK).json({
-      //     status: "success",
-      //     message: "date is availble"
-      //   })
-      // }else{
-      //   res.status(HttpStatus.OK).json({
-      //     status: "fail",
-      //     message: "date is unavailble"
-      //   })
-      // }
-      
+  
     } catch (error) {
       next(error)
       
@@ -301,17 +283,13 @@ const hotelController = (
   ) => {
     try {
       const userID = req.owner
-      console.log(userID)
-      
+   
       const hotels = await getMyHotels(userID, dbRepositoryHotel)
 
-      console.log(hotels,"$$$$$$$$$$$$$$$$$$$$$$$");
       
       const HotelIds: string[] = hotels.map((hotel) => hotel._id.toString());
-      console.log(HotelIds,"-----------------------------------------------------------");
 
       const bookings=await getBookingsByHotels(HotelIds,dbRepositoryBooking)
-      console.log(bookings);
       
       res.status(HttpStatus.OK).json({
         success: true,
@@ -326,7 +304,6 @@ const hotelController = (
   const addRating = async (req: Request, res: Response, next: NextFunction) => {
     const userId = req.user
     const data = req.body
-    console.log("helooooo")
     const result = await addNewRating(userId, data, dbRepositoryHotel)
     if (result) {
       return res

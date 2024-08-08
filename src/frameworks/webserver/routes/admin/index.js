@@ -1,0 +1,35 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const authServices_1 = require("../../../../app/service-interface/authServices");
+const authService_1 = require("../../../servies/authService");
+const userDbRepositories_1 = require("../../../../app/interfaces/userDbRepositories");
+const ownerDbInterface_1 = require("../../../../app/interfaces/ownerDbInterface");
+const ownerRepository_1 = require("../../../database/repositories/ownerRepository");
+const userRepositoryMongoDB_1 = require("../../../database/repositories/userRepositoryMongoDB");
+const adminController_1 = __importDefault(require("../../../../adapters/admin/adminController"));
+const authMiddleWare_1 = require("../../middleware/authMiddleWare");
+const hotelDbInterface_1 = require("../../../../app/interfaces/hotelDbInterface");
+const hotelRepositoryMongoDB_1 = require("../../../database/repositories/hotelRepositoryMongoDB");
+const bookingDbInterface_1 = __importDefault(require("../../../../app/interfaces/bookingDbInterface"));
+const bookingRepositoryMongoDB_1 = __importDefault(require("../../../database/repositories/bookingRepositoryMongoDB"));
+const adminRouter = () => {
+    const router = (0, express_1.Router)();
+    const controller = (0, adminController_1.default)(authServices_1.authServiceInterface, authService_1.authService, userDbRepositories_1.userDbRepository, userRepositoryMongoDB_1.userRepositoryMongoDB, ownerDbInterface_1.ownerDbInterface, ownerRepository_1.ownerDbRepository, hotelDbInterface_1.hotelDbInterface, hotelRepositoryMongoDB_1.hotelDbRepository, bookingDbInterface_1.default, bookingRepositoryMongoDB_1.default);
+    router.post("/login", controller.adminLogin);
+    router.get("/users", authMiddleWare_1.authenticateAdmin, controller.getAllUsers);
+    router.get("/owners", authMiddleWare_1.authenticateAdmin, controller.getAllOwners);
+    router.get("/hotels", controller.getAllHotels);
+    router.get("/hotelDetails/:id", controller.hotelDetails);
+    router.get("/bookings", controller.getBookings);
+    router.patch("/block_user/:id", controller.userBlock);
+    router.patch("/block_owner/:id", controller.ownerBlock);
+    router.patch("/verify_hotel/:id", controller.VerifyHotel);
+    router.patch("/verify_hotel_rejection/:id", controller.rejectionHotel);
+    router.post("/addCategory", controller.addCategory);
+    return router;
+};
+exports.default = adminRouter;

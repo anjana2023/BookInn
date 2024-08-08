@@ -46,20 +46,11 @@ export const userRegister = async (
 
   const OTP = authService.generateOtp();
 
-  console.log(OTP);
-
   await userRepository.addOtp(OTP, newUser.id);
   const emailSubject = "Account verification";
   sendMail(newUser.email, emailSubject, otpEmail(OTP, newUser.name));
 
-  // const accessToken = authService.createTokens(
-  //   newUser.id,
-  //   newUser.name,
-  //   newUser.role
-// );
 return  newUser
-  // accessToken,
-
 
 };
 
@@ -208,10 +199,7 @@ export const sendResetVerificationCode = async (
     email,
     verificationCode
   );
-  console.log(
-    verificationCode,
-    "--------------------------------------------verification code"
-  );
+
 
   sendMail(
     email,
@@ -249,19 +237,18 @@ export const deleteOtp = async (
   userRepository: ReturnType<userDbInterface>,
   authService: ReturnType<AuthServiceInterface>
 ) => {
-  console.log("qwerty");
+  
   const newOtp: string = authService.generateOtp();
-  console.log(newOtp);
+ 
 
   const deleted = await userRepository.deleteOtpWithUser(userId);
 
-  console.log(deleted);
 
   if (deleted) {
     await userRepository.addOtp(newOtp, userId);
   }
   const user = await userRepository.getUserById(userId);
-  console.log(user);
+
 
   if (!user) {
     throw new AppError("User not found", HttpStatus.NOT_FOUND);
@@ -270,7 +257,6 @@ export const deleteOtp = async (
   const emailSubject = "Account verification ,New Otp";
   sendMail(user.email, emailSubject, otpEmail(newOtp, user.name));
 
-  console.log(newOtp, "----otp");
 };
 
 

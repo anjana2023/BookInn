@@ -6,7 +6,6 @@ export const updateUnreadMessages = async (
   recieverID: string,
   chatRepository: ReturnType<ChatDbRepositoryInterace>
 ) => {
-  console.log("calling updateUnreadMessages in server");
 
   return await chatRepository.updateMessages(
     { conversationId: conversationID, senderId: recieverID },

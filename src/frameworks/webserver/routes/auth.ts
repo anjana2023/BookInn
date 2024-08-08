@@ -65,7 +65,7 @@ const authRouter = () => {
   );
   router.get("/hotels", authenticateUser, userHotelController.getHotelsUserSide);
   router.get("/hotelDetails/:id",authenticateUser,userHotelController.hotelDetails);
-  router.get("/checkAvailability/:id",authenticateUser, userHotelController.checkAvilabitiy);
+  router.post("/checkAvailability/:id",authenticateUser, userHotelController.checkAvilabitiy);
   router.post("/addRating", authenticateUser, userHotelController.addRating)
   router.get("/getRating/:hotelId", userHotelController.getRatingsbyHotelId)
   router.get("/getRatingById/:Id", userHotelController.getRatingsbyId)
@@ -90,11 +90,15 @@ const authRouter = () => {
    router.patch("/booking/cancel/:bookingID",authenticateUser,userBookingController.cancelBooking)
    router.get("/allBookings",authenticateUser,userBookingController.getAllBooking);
   router.get("/walletPayment",authenticateUser,userBookingController.walletPayment);
- 
+  router.post(
+    "/addUnavilableDates",
+    authenticateUser,
+    userBookingController.addUnavilableDate
+  )
   //user side
   router.get("/fetchWallet/:id",authenticateUser,userBookingController.getWallet);
   router.get("/transactions", authenticateUser, userBookingController.getTransactions);
-  router.get("/checkAvailability/:id", userHotelController.checkAvilabitiy);
+  router.get("/checkAvailability/:id",authenticateUser, userHotelController.checkAvilabitiy);
   router.get("/searchedHotels", userHotelController.destinationSearch)
   router.get("/hotelDetails", userHotelController.DetailsFilter)
   return router;

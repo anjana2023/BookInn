@@ -12,7 +12,6 @@ export const userDbRepository = (
 
   const getUserById = async (id: string) => {
    const user =await repository.getUserbyId(id)
-   console.log('user fetehcted fotrm repo',user)
 return user
     };
 

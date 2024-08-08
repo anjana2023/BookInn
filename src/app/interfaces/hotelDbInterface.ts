@@ -33,7 +33,6 @@ export const hotelDbInterface = (
 
   const getMyHotels = async (ownerId: string) =>{
    const res= await repository.getMyHotels(ownerId);
-   console.log(res,"//////result")
    return res
 
   }

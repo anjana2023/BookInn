@@ -199,6 +199,31 @@ export default function bookingController(
   }
 
 
+  const addUnavilableDate = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    const data = req.body
+
+    const result = await addUnavilableDates(
+      data.rooms,
+      data.checkInDate ?? new Date(),
+      data.checkOutDate ?? new Date(),
+      dbRepositoryHotel,
+      hotelService
+    )
+
+    res.status(HttpStatus.OK).json({
+      success: true,
+      message: "dates added successfully",
+      result,
+    })
+  }
+
+
+
+
  /**update the wallet  */
  const changeWalletAmount = async (
   req: Request,
@@ -448,6 +473,7 @@ const getTransactions = async (
       cancelBooking,
       getTransactions,
       getWallet,
+      addUnavilableDate,
       getOwnerBookings,
       updateBooking
     }

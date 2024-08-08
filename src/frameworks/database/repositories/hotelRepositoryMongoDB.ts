@@ -142,7 +142,6 @@ export const hotelDbRepository=()=>{
       };
       const getMyHotels = async (ownerId: string) => {
         const Hotels = await Hotel.find({ ownerId });
-     console.log(Hotels,"^^^^^^^^^^^^^^^^^^^^^^^^^^")
         return Hotels;
       };
     
@@ -214,11 +213,11 @@ const updateUnavailableDates = async (id: string, dates: any) =>
   }
 
   const getDates = async (startDate: any, endDate: any) => {
-    console.log(startDate, endDate, "😀")
+   
 
     const currentDate = new Date(startDate)
     const end = new Date(endDate)
-    console.log(currentDate, end, "😄")
+  
 
     const datesArray: string[] = []
 
@@ -247,21 +246,6 @@ const updateUnavailableDates = async (id: string, dates: any) =>
     limit: number
   ) => {
     let hotels: any[];
-  
-    console.log("Filtering hotels with parameters:", {
-      place,
-      adults,
-      children,
-      room,
-      startDate,
-      endDate,
-      amenities,
-      minPrice,
-      maxPrice,
-      categories,
-      skip,
-      limit,
-    });
   
     try {
       // Fetch hotels based on place
@@ -313,7 +297,6 @@ const updateUnavailableDates = async (id: string, dates: any) =>
       if (minPrice && maxPrice && parseInt(maxPrice) !== 0) {
         const minPriceInt = parseInt(minPrice, 10);
         const maxPriceInt = parseInt(maxPrice, 10);
-        console.log("Price range:", minPriceInt, maxPriceInt);
   
         hotels = hotels.filter((hotel: HotelInterface) => {
           const filteredRooms = hotel.rooms.filter((room: RoomInterface) => {
@@ -341,7 +324,6 @@ const updateUnavailableDates = async (id: string, dates: any) =>
       // Pagination
       const paginatedHotels = hotels.slice(skip, skip + limit);
   
-      console.log("Filtered hotels:", paginatedHotels);
       return paginatedHotels;
     } catch (error) {
       console.error("Error filtering hotels:", error);
@@ -362,24 +344,19 @@ const updateUnavailableDates = async (id: string, dates: any) =>
     maxPrice: string
   ) => {
     try {
-      // Fetch the hotel by ID and populate rooms
       const hotel = await Hotel.findById(id).populate("rooms")
   
       if (!hotel) {
         throw new Error("Hotel not found")
       }
    
-      console.log(hotel,"233333333333333333333333333")
-      // Convert string inputs to numbers
       const adultsInt = adults ? parseInt(adults) : 0
       const childrenInt = children ? parseInt(children) : 0
 
-      // Filter rooms based on max adults and children
       hotel.rooms = hotel.rooms.filter((room: any) => {
         return room.maxAdults >= adultsInt && room.maxChildren >= childrenInt
       })
 
-      // Split start and end dates into parts
       const start = splitDate(startDate)
       const end = splitDate(endDate)
 

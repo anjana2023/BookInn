@@ -27,7 +27,7 @@ const profileController = (
   ) => {
     try {
       const userId = (req as any).user as string;
-      console.log(userId,"///////////////userId")
+     
       const user = await getUserProfile(userId, dbRepositoryUser);
       if (!user) {
         return res.status(404).json({ success: false, message: "User not found" });
@@ -46,7 +46,7 @@ const profileController = (
     try {
       const userId = (req as any).user as string;
       const updatedData = req.body;
-      console.log(updatedData,".....user uodaed data$$$$$$$$$$")
+   
       const user = await updateUser(userId, updatedData, dbRepositoryUser);
       res
         .status(200)

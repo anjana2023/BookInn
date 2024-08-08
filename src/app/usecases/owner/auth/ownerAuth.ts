@@ -26,7 +26,6 @@ export const OwnerRegister = async (
   authService: ReturnType<AuthServiceInterface>
 ) => {
   const { name, email, password, phoneNumber, role } = owner;
-  console.log(owner);
 
   const existingEmailOwner = await ownerRepository.getOwnerByEmail(email);
   if (existingEmailOwner) {
@@ -48,8 +47,6 @@ export const OwnerRegister = async (
   const newOwner: OwnerInterface = await ownerRepository.addOwner(ownerEntity);
 
   const OTP = authService.generateOtp();
-
-  console.log(OTP);
 
   await ownerRepository.addOtp(OTP, newOwner.id);
   const emailSubject = "Account verification";
@@ -114,7 +111,7 @@ export const verifyOtpOwner = async (
     throw new AppError("please provide an OTP", HttpStatus.BAD_REQUEST);
   }
   const otpOwner = await ownerRepository.findOtpWithOwner(ownerId);
-  console.log(otpOwner,"...........................otp");
+ 
 
   if (!otpOwner) {
     throw new AppError("Invlaid OTP ", HttpStatus.BAD_REQUEST);
@@ -183,11 +180,6 @@ export const sendResetVerificationCode = async (
     email,
     verificationCode
   );
-  console.log(
-    verificationCode,
-    "------------------------------vhdsdsdudkygsud----------------------------------verification code"
-  );
-
   sendMail(
     email,
     "Reset password",
@@ -228,13 +220,13 @@ export const deleteOtp = async (
 
   const deleted = await ownerRepository.deleteOtpWithOwner(ownerId);
 
-  console.log(deleted);
+
 
   if (deleted) {
     await ownerRepository.addOtp(newOtp, ownerId);
   }
   const owner = await ownerRepository.getOwnerById(ownerId);
-  console.log(owner);
+  
 
   if (!owner) {
     throw new AppError("Owner not found", HttpStatus.NOT_FOUND);
@@ -243,7 +235,6 @@ export const deleteOtp = async (
   const emailSubject = "Account verification ,New Otp";
   sendMail(owner.email, emailSubject, otpEmail(newOtp, owner.name));
 
-  console.log(newOtp, "----otp");
 };
 
 export const getOwnerById = async (

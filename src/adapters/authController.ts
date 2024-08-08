@@ -177,16 +177,16 @@ const authController = (
     next: NextFunction
   ) => {
     try {  
-      console.log("helloooo.....................$$$**.....")
+     
 
       const id = req.params.id
-      console.log(id,"...................");
+     
       const Hotel = await getSingleOwner(id, dbRepositoryOwner)
       
       if (!Hotel) {
         return res.status(HttpStatus.NOT_FOUND).json({ success: false, error: "Hotel not found" });
       }
-      console.log(Hotel,"####################################")
+      
       return res.status(HttpStatus.OK).json({ success: true, Hotel })
     } catch (error) {
       next(error)

@@ -15,9 +15,7 @@ export const userRepositoryMongoDB = () => {
   };
 
   const getUserbyId = async (id: string): Promise<UserInterface | null> => {
-    console.log('Fetching user with ID:', id);
     const user = await User.findById(id).populate("wallet").lean()
-   console.log(user,".....................................user..............................")
     if (!user) {
       return null
     }

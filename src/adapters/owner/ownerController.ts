@@ -61,10 +61,7 @@ const authController = (
     async (req: Request, res: Response, next: NextFunction) => {
       try {
         const owner: CreateOwnerInterface = req.body;
-        console.log(
-          req.body,
-          "------------------------------------------------------------------ register"
-        );
+      
         const newOwner = await OwnerRegister(
           owner,
           dbRepositoryOwner,
@@ -103,8 +100,7 @@ const authController = (
   const resendOtp = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { ownerId } = req.body;
-      console.log(ownerId);
-      console.log(ownerId);
+    
       await deleteOtp(ownerId, dbRepositoryOwner, authService);
       res.json({ message: "New otp sent to mail" });
     } catch (error) {
@@ -115,7 +111,7 @@ const authController = (
   const ownerLogin = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       try {
-        console.log("Request Body:", req.body);
+        
         const { accessToken,refreshToken, isEmailExist } = await loginOwner(
           req.body,
           dbRepositoryOwner,
@@ -213,7 +209,7 @@ const authController = (
     try {
       const { password } = req.body;
       const { token } = req.params;
-      console.log(token);
+  
       await verifyTokenResetPassword(
         token,
         password,
@@ -236,9 +232,7 @@ const authController = (
   ) => {
     try {
       const userId = (req as any).owner as string;
-      console.log(userId);
       const user = await getOwnerProfile(userId, dbRepositoryOwner);
-      console.log(user, "owner profile");
       res.status(200).json({ success: true, user });
     } catch (error) {
       next(error);
@@ -283,16 +277,13 @@ const authController = (
     next: NextFunction
   ) => {
     try {  
-      console.log("helloooo.....................$$$**.....")
 
       const id = req.params.id
-      console.log(id,"...................");
       const Hotel = await getHotelDetails(id, dbRepositoryHotel)
       
       if (!Hotel) {
         return res.status(HttpStatus.NOT_FOUND).json({ success: false, error: "Hotel not found" });
       }
-      console.log(Hotel,"####################################")
       return res.status(HttpStatus.OK).json({ success: true, Hotel })
     } catch (error) {
       next(error)

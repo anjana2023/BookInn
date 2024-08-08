@@ -40,7 +40,7 @@ export default async function createBooking(
     platformFee,
     paymentMethod,
   } = bookingDetails;
-  console.log(bookingDetails);
+ 
 
   if (
     !firstName ||
@@ -80,11 +80,9 @@ export default async function createBooking(
   );
 
   const data = await bookingRepository.createBooking(bookingEntity);
-  console.log(data, "......................................")
 
   if (data.paymentMethod === "Wallet") {
     const wallet = await userRepository.getWallet(data.userId as string)
-    console.log(wallet, "wallet in payment??????????????????????????????")
 
     if (wallet && data && data.price && wallet?.balance >= data.price) {
       const transactionData: TransactionDataType = {
@@ -130,8 +128,7 @@ export const removeUnavilableDates = async (
     checkInDate.toString(),
     checkOutDate.toString()
   )
-  console.log(dates, "dates..................")
-  console.log(rooms, "rooms")
+
   const addDates = await hotelRepository.removeUnavailableDates(rooms, dates)
 }
 
@@ -167,23 +164,17 @@ export const cancelBookingAndUpdateWallet = async (
     }
   
     if (bookingDetails && bookingDetails.paymentMethod !== "pay_on_checkout") {
-      console.log("in updating wallet")
-  
+    
       if (bookingDetails.status === "cancelled") {
         const dateDifference = await bookingService.dateDifference(
           bookingDetails.updatedAt,
           bookingDetails.checkInDate ?? 0
         )
-        console.log(bookingDetails.updatedAt, "updated date")
-        console.log(bookingDetails.checkInDate, "checkin date")
-  
-        console.log(dateDifference, "dateDifference")
-  
+       
         const paidPrice = bookingDetails.price
         if (paidPrice !== undefined && paidPrice !== null) {
           const platformFee = paidPrice * 0.05
           let refundAmount: number = paidPrice - platformFee
-          console.log(refundAmount, "price after reducing platform fee")
   
           if (dateDifference !== undefined && dateDifference > 2) {
             const isRoomCountLessThanOrEqualTo5 = bookingDetails.rooms.length <= 5
@@ -201,7 +192,7 @@ export const cancelBookingAndUpdateWallet = async (
                 refundAmount /= 2
               }
             }
-            console.log(refundAmount, "refund amount")
+            
   
             const data: TransactionDataType = {
               newBalance: refundAmount,
@@ -248,12 +239,10 @@ export const cancelBookingAndUpdateWallet = async (
     userRepository: ReturnType<userDbInterface>
   ) => {
     const { newBalance, type, description } = transactionData
-    console.log(transactionData, "transation data")
   
     const balance = type === "Debit" ? -newBalance : newBalance
-    console.log(userId, "userId", balance, "balance")
     const updateWallet = await userRepository.updateWallet(userId, balance)
-    console.log(updateWallet, "update wallet")
+    
   
     if (updateWallet) {
       const transactionDetails = transactionEntity(
@@ -281,8 +270,7 @@ export const addUnavilableDates = async (
     checkInDate.toString(),
     checkOutDate.toString()
   );
-  console.log(dates, "dates..................");
-  console.log(rooms, "rooms");
+
   const addDates = await hotelRepository.addUnavilableDates(rooms, dates);
 };
 
@@ -303,8 +291,7 @@ export const makePayment = async (
   bookingId: string,
   totalAmount: number
 ) => {
-  console.log("nsjbzdhvcxhbjnkm");
-  console.log(bookingId, "....bokingId.........");
+
   const stripe = new Stripe(configKeys.STRIPE_SECRET_KEY);
 
   const customer = await stripe.customers.create({
@@ -315,8 +302,6 @@ export const makePayment = async (
       country: "US",
     },
   });
-  console.log(customer, "customer");
-
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ["card"],
     customer: customer.id,
@@ -335,7 +320,7 @@ export const makePayment = async (
     cancel_url: `${configKeys.CLIENT_PORT}/payment_status/${bookingId}?success=false`,
   });
 
-  console.log(session.id, "////////////////////////////////////////////////");
+  
 
   return session.id;
 };
@@ -344,10 +329,9 @@ export const getTransaction=async(
   userId: string,
   userRepository: ReturnType<userDbInterface>
 )=>{ 
-  console.log(userId);
-  
+
   const wallet=await userRepository.getWallet(userId)
-  console.log(wallet);
+  
   
   if (!wallet) {
     throw new Error('Wallet not found');
@@ -375,8 +359,7 @@ export const updateBookingStatus = async (
   const updationData: Record<string, any> = {
     paymentStatus,
   }
-  console.log(updationData, "updationData....................")
-
+  
   const bookingData = await bookingRepository.updateBooking(id, updationData)
 }
 
@@ -391,7 +374,6 @@ export const getBookingByUserId = async (
   bookingRepository: ReturnType<bookingDbInterfaceType>
 ) => {
   const bookingDetails = await bookingRepository.getAllBookingByUserId(userId);
-  console.log(bookingDetails, "bookingdetausss");
   return { bookingDetails };
 };
 
@@ -433,7 +415,6 @@ export const updateBookingDetails = async (
     })
   }
 
-  console.log(bookingDetails, "booking details.............")
   return bookingDetails
 }
 

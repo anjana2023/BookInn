@@ -20,6 +20,6 @@ export const verifyNumber=async(
   ownerRepository:ReturnType<ownerDbInterfaceType>
 )=>{
   const user=await ownerRepository.getOwnerByNumber(phoneNumber)
-  console.log(user);
+
   
 }

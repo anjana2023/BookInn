@@ -22,7 +22,6 @@ const socketConfig = (io: Server) => {
   }
 
   io.on("connection", (socket) => {
-    console.log("User connected");
 
     // When a user connects
     socket.on("addUser", (userId) => {
@@ -46,7 +45,6 @@ const socketConfig = (io: Server) => {
     // When a user disconnects
     socket.on("disconnect", () => {
       removeUser(socket.id);
-      console.log("A user has been disconnected");
       io.emit("getUsers", users);
     });
   });

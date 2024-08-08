@@ -34,7 +34,6 @@ export default function authenticateUser(
         .status(HttpStatus.FORBIDDEN)
         .json({ success: false, message: "Token is not valid" });
     } else {
-      console.log(user.id,"/////////////user id from moddleware")
       req.user = user.id;
 
       next();
@@ -90,7 +89,6 @@ export async function authenticateOwner(
   try {
     const access_token = req.headers.authorization;
     if (!access_token) {
-      console.log("No access token provided");
       return res.status(HttpStatus.FORBIDDEN).json("You are not authenticated");
     }
 
@@ -98,17 +96,14 @@ export async function authenticateOwner(
     const token = tokenParts.length === 2 ? tokenParts[1] : null;
 
     if (!token) {
-      console.log("Invalid token format");
       return res
         .status(HttpStatus.FORBIDDEN)
         .json("Invalid access token format");
     }
 
-    console.log("Token: ", token);
 
     const owner = jwt.verify(token, configKeys.ACCESS_SECRET) as JwtPayload;
 
-    console.log("Decoded owner: ", owner);
 
     if (owner.role === "owner") {
       req.owner = owner.id;
@@ -121,7 +116,6 @@ export async function authenticateOwner(
       owner,
     });
   } catch (error) {
-    console.log("Token verification error: ", error);
     return res
       .status(HttpStatus.FORBIDDEN)
       .json({ success: false, message: "Token is not valid" });

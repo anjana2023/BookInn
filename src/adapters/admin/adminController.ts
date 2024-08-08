@@ -71,7 +71,7 @@ const adminController = (
   ) => {
     try {
       const users = await getUsers(dbUserRepository);
-      console.log(users,"users")
+  
       return res.status(HttpStatus.OK).json({ success: true, users });
     } catch (error) {
       next(error);
@@ -85,7 +85,7 @@ const adminController = (
   ) => {
     try {
       const owners = await getOwners(dbOwnerRepository);
-      console.log(owners,"owners")
+   
       return res.status(HttpStatus.OK).json({ success: true, owners });
     } catch (error) {
       next(error);

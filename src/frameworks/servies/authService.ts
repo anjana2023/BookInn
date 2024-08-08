@@ -50,8 +50,7 @@ export const authService = () => {
       const refreshToken = jwt.sign(payload, configKeys.REFRESH_SECRET, {
         expiresIn: "2d",
       });
-      console.log('Access Token:', accessToken); 
-      console.log('Refresh Token:', refreshToken);
+   
     
     return {accessToken,refreshToken};
 }

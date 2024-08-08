@@ -33,10 +33,7 @@ export const ownerDbRepository = () => {
   };
 
   const findOwnerOtp = async (ownerId: string) => {
-    console.log(ownerId);
-    console.log(ownerId);
-    console.log(ownerId);
-
+  
     return await otpModel.findOne({ ownerId });
   };
 
@@ -75,7 +72,6 @@ export const ownerDbRepository = () => {
   const getAllOwners = async () => {
 
     const own = await Owner.find({ isVerified: true });
-    console.log(own,"ppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppppp")
     return own
   }
 
