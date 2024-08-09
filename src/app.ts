@@ -9,19 +9,25 @@ import errorHandlingMiddleware from "./frameworks/webserver/middleware/errorhand
 import AppError from "./utils/appError";
 import socketConfig from "./frameworks/webserver/webSocket";
 const app: Application = express();
-import cors from "cors"; 
+import cors from "cors";
 
 const server = http.createServer(app);
 
 const io = new Server(server, {
     cors: {
-      origin: ["https://anjanabookinn.netlify.app"],
+      origin: true,
       methods: ["GET", "POST"],
       credentials: true,
     },
   });
 
 socketConfig(io);
+app.use(cors({
+  origin: "https://anjanabookinn.netlify.app",
+  methods: ["GET", "POST"],
+  credentials: true,
+}));
+
 
 expressConfig(app);
 
