@@ -15,7 +15,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
     cors: {
-      origin: "https://anjanabookinn.netlify.app",
+      origin: ["https://anjanabookinn.netlify.app"],
       methods: ["GET", "POST"],
       credentials: true,
     },
