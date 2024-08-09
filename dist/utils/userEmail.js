@@ -1,6 +1,10 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.forgotPasswordEmail = exports.otpEmail = void 0;
+const config_1 = __importDefault(require("../config"));
 const otpEmail = (otp, name) => {
     return `
     <!DOCTYPE html>
@@ -142,7 +146,7 @@ const forgotPasswordEmail = (name, verificationCode) => {
         <p><span class="name">Dear ${name},</span></p>
         <p>We have received a request to reset your password. To reset your password, click the button below:</p>
         <div class="button-container">
-          <a href="http://localhost:5173/user/auth/reset_password/${verificationCode}" class="reset-button" style="color: white;">Reset Password</a>
+          <a href="${config_1.default.CLIENT_PORT}/user/auth/reset_password/${verificationCode}" class="reset-button" style="color: white;">Reset Password</a>
         </div>
         <p>If you didn't request a password reset, you can ignore this email. Your password will remain unchanged.</p>
         <p>Thank you for using our service!</p>

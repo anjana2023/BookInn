@@ -1,3 +1,5 @@
+import configKeys from "../config";
+
 export const otpEmail = (otp: string, name: string) => {
   return `
     <!DOCTYPE html>
@@ -139,7 +141,7 @@ export const forgotPasswordEmail = (name: string, verificationCode: string) => {
         <p><span class="name">Dear ${name},</span></p>
         <p>We have received a request to reset your password. To reset your password, click the button below:</p>
         <div class="button-container">
-          <a href="http://localhost:5173/user/auth/reset_password/${verificationCode}" class="reset-button" style="color: white;">Reset Password</a>
+          <a href="${configKeys.CLIENT_PORT}/user/auth/reset_password/${verificationCode}" class="reset-button" style="color: white;">Reset Password</a>
         </div>
         <p>If you didn't request a password reset, you can ignore this email. Your password will remain unchanged.</p>
         <p>Thank you for using our service!</p>
