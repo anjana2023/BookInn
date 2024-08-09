@@ -63,7 +63,7 @@ const authRouter = () => {
     bookingDbInterface,
     bookingDbRepository,
   );
-  router.get("/hotels",userHotelController.getHotelsUserSide);
+  router.get("/hotels", userHotelController.getHotelsUserSide);
   router.get("/hotelDetails/:id",userHotelController.hotelDetails);
   router.post("/checkAvailability/:id",authenticateUser, userHotelController.checkAvilabitiy);
   router.post("/addRating", authenticateUser, userHotelController.addRating)

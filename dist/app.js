@@ -13,7 +13,6 @@ const connection_1 = __importDefault(require("./frameworks/database/connection")
 const errorhandlerMiddleware_1 = __importDefault(require("./frameworks/webserver/middleware/errorhandlerMiddleware"));
 const webSocket_1 = __importDefault(require("./frameworks/webserver/webSocket"));
 const app = (0, express_1.default)();
-const cors_1 = __importDefault(require("cors"));
 const server = http_1.default.createServer(app);
 const io = new socket_io_1.Server(server, {
     cors: {
@@ -23,11 +22,6 @@ const io = new socket_io_1.Server(server, {
     },
 });
 (0, webSocket_1.default)(io);
-app.use((0, cors_1.default)({
-    origin: "https://anjanabookinn.netlify.app",
-    methods: ["GET", "POST"],
-    credentials: true,
-}));
 (0, expressConfig_1.default)(app);
 (0, connection_1.default)();
 (0, routes_1.default)(app);

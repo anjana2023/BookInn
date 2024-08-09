@@ -62,12 +62,10 @@ const hotelController = (hotelDbRepository, hotelDbRepositoryImpl, bookingDbRepo
     });
     const getHotelsUserSide = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
         try {
-            console.log("hiiiii");
-            if (req.user) {
-                const Hotels = yield (0, hotel_2.getUserHotels)(dbRepositoryHotel);
-                console.log(Hotels, "////////////");
-                return res.status(httpStatus_1.HttpStatus.OK).json({ success: true, Hotels });
-            }
+            // if (req.user) {
+            const Hotels = yield (0, hotel_2.getUserHotels)(dbRepositoryHotel);
+            return res.status(httpStatus_1.HttpStatus.OK).json({ success: true, Hotels });
+            // }
         }
         catch (error) {
             next(error);

@@ -7,7 +7,7 @@ const expressConfig = (app: Application) => {
   app.use(express.urlencoded({ extended: true }));
   app.use(morgan("dev"));
   const corsConfig = {
-    origin: true,
+    origin:true,
     credentials: true,
   };
 
